@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Actividades SHA PROSALMED</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Fondo inspirado en la imagen con brillos laterales */
+            background-color: #0c1021;
+            background-image: radial-gradient(ellipse 80% 80% at 0% 50%, rgba(0, 85, 255, 0.6) 0%, transparent 100%), radial-gradient(ellipse 80% 80% at 100% 50%, rgba(255, 0, 51, 0.6) 0%, transparent 100%);
+            background-attachment: fixed;
+        }
+        /* Barra de desplazamiento personalizada para una estética mejorada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; /* slate-800 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6; /* blue-500 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb; /* blue-600 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+
+    <!-- Logo de la Empresa -->
+    <div class="mb-6">
+        <img src="https://static.wixstatic.com/media/8b1764_8e8af4e9fbd54ef085bc68a18999d35d~mv2.png/v1/fill/w_540,h_222,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/2-fondo%20blanco%20horizontal%202.png" alt="Sha-Prosalmed Logo" class="mx-auto h-20 sm:h-24 w-auto">
+    </div>
+
+    <!-- Encabezado -->
+    <header class="w-full max-w-4xl bg-gray-900/50 backdrop-blur-sm p-4 rounded-t-xl shadow-lg h-16">
+        <!-- Contenido del encabezado eliminado para un diseño más limpio -->
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="w-full max-w-4xl bg-white p-6 sm:p-8 rounded-b-xl shadow-2xl border-t-4 border-red-500">
+        <div id="messageBox" class="hidden text-center font-medium"></div>
+
+        <!-- Sección del Formulario -->
+        <section class="mb-8">
+            <h2 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 border-b-2 border-red-400 pb-2">Registrar Nueva Jornada</h2>
+            <form id="reportForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <!-- Fecha -->
+                <div>
+                    <label for="reportDate" class="block text-gray-700 text-sm font-semibold mb-2">Fecha:</label>
+                    <input type="date" id="reportDate" name="reportDate"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                </div>
+
+                <!-- Responsable SHA -->
+                <div>
+                    <label for="coordinator" class="block text-gray-700 text-sm font-semibold mb-2">Responsable SHA:</label>
+                    <input type="text" id="coordinator" name="coordinator" placeholder="Ej: Darwin Gómez"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                </div>
+
+                <!-- Cliente (Dropdown) -->
+                <div class="md:col-span-2">
+                    <label for="location" class="block text-gray-700 text-sm font-semibold mb-2">Cliente:</label>
+                    <select id="location" name="location" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 bg-white">
+                        <option value="" disabled selected>Selecciona un cliente</option>
+                        <option value="A&S CONSULTORES, C.A.">A&S CONSULTORES, C.A.</option>
+                        <option value="ADMINISTRADORA 302, C.A.">ADMINISTRADORA 302, C.A.</option>
+                        <option value="ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS">ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS</option>
+                        <option value="BANCO ACTIVO,C.A.">BANCO ACTIVO,C.A.</option>
+                        <option value="BAYER, S.A.">BAYER, S.A.</option>
+                        <option value="CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)">CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)</option>
+                        <option value="CARACAS SOUL C.A.">CARACAS SOUL C.A.</option>
+                        <option value="CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.">CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.</option>
+                        <option value="CONDOMINIO CENTRO COMERCIAL CITY MARKET">CONDOMINIO CENTRO COMERCIAL CITY MARKET</option>
+                        <option value="CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.">CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.</option>
+                        <option value="DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.">DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.</option>
+                        <option value="DICAM SISTEMAS INTELIGENTES C.A">DICAM SISTEMAS INTELIGENTES C.A</option>
+                        <option value="EAGLEBURGMANN VENEZUELA, C.A.">EAGLEBURGMANN VENEZUELA, C.A.</option>
+                        <option value="GRUPO INFOGUIANET, C.A.">GRUPO INFOGUIANET, C.A.</option>
+                        <option value="GRUPO INTEXUS C.A">GRUPO INTEXUS C.A</option>
+                        <option value="H2 FOOD SERVICE, C.A.">H2 FOOD SERVICE, C.A.</option>
+                        <option value="IMPORTADORA BICIMOTO LTDA C.A.">IMPORTADORA BICIMOTO LTDA C.A.</option>
+                        <option value="INVERSIONES OTAPE C.A.">INVERSIONES OTAPE C.A.</option>
+                        <option value="INVERSIONES QUIMIVECO 3, C.A">INVERSIONES QUIMIVECO 3, C.A</option>
+                        <option value="INVERSORA MELKIM">INVERSORA MELKIM</option>
+                        <option value="MASTERCARD VENEZUELA, INC.">MASTERCARD VENEZUELA, INC.</option>
+                        <option value="OTAOLA INGENIERIA C.A.">OTAOLA INGENIERIA C.A.</option>
+                        <option value="OXICORP, C.A.">OXICORP, C.A.</option>
+                        <option value="PEPSICO (MARACAY)">PEPSICO (MARACAY)</option>
+                        <option value="PROMOTORA 204 C.A.">PROMOTORA 204 C.A.</option>
+                        <option value="PROSALMED C.A. CCCT">PROSALMED C.A. CCCT</option>
+                        <option value="PROSALMED C.A. SBG">PROSALMED C.A. SBG</option>
+                        <option value="PROSALMED C.A. SEDE PRINCIPAL">PROSALMED C.A. SEDE PRINCIPAL</option>
+                        <option value="SNACKS (MARACAIBO)">SNACKS (MARACAIBO)</option>
+                        <option value="SNACKS (MARACAY)">SNACKS (MARACAY)</option>
+                        <option value="SNACKS (PTO ORDAZ)">SNACKS (PTO ORDAZ)</option>
+                        <option value="SNACKS (VALENCIA)">SNACKS (VALENCIA)</option>
+                        <option value="TELEFONICA">TELEFONICA</option>
+                        <option value="VAN DER IMPORT, C.A">VAN DER IMPORT, C.A</option>
+                        <option value="OTRO">OTRO</option>
+                    </select>
+                </div>
+
+                <!-- Hora Inicio -->
+                <div>
+                    <label for="startTime" class="block text-gray-700 text-sm font-semibold mb-2">Hora Inicio:</label>
+                    <input type="time" id="startTime" name="startTime"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                </div>
+
+                <!-- Hora Fin -->
+                <div>
+                    <label for="endTime" class="block text-gray-700 text-sm font-semibold mb-2">Hora Fin:</label>
+                    <input type="time" id="endTime" name="endTime"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                </div>
+
+                <!-- Display de Tiempo Transcurrido -->
+                <div class="md:col-span-2 text-center mt-2 p-3 bg-blue-50 rounded-lg text-blue-800 font-bold text-lg">
+                    <span id="elapsedTimeDisplay">Tiempo Transcurrido: --</span>
+                </div>
+
+                <!-- Actividades -->
+                <div class="md:col-span-2">
+                    <label for="activities" class="block text-gray-700 text-sm font-semibold mb-2">Actividades Realizadas:</label>
+                    <div id="activityButtons" class="flex flex-wrap gap-2 mb-2">
+                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Inspección de campo</button>
+                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Reunión de seguridad</button>
+                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Capacitación de personal</button>
+                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Recorrido por instalaciones</button>
+                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Verificación de EPP</button>
+                    </div>
+                    <textarea id="activities" name="activities" rows="5"
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                              placeholder="Describe las actividades realizadas, o usa los botones de arriba."></textarea>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="md:col-span-2">
+                    <label for="observations" class="block text-gray-700 text-sm font-semibold mb-2">Observaciones:</label>
+                    <div id="observationButtons" class="flex flex-wrap gap-2 mb-2">
+                         <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Jornada sin novedad</button>
+                         <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Se observó buen uso de EPP</button>
+                         <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Se requiere seguimiento a...</button>
+                         <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Personal colaboró con las medidas</button>
+                    </div>
+                    <textarea id="observations" name="observations" rows="3"
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                              placeholder="Añade cualquier observación relevante, o usa los botones de arriba."></textarea>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="md:col-span-2 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-6">
+                    <button type="button" id="generateWhatsAppBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                        <span class="text-xl">📲</span>
+                        Enviar a WhatsApp
+                    </button>
+                    <button type="button" id="copyReportBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <span class="text-xl">📋</span>
+                        Copiar Reporte
+                    </button>
+                    <button type="button" id="addToCalendarBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
+                        <span class="text-xl">🗓️</span>
+                        Agendar
+                    </button>
+                    <button type="button" id="clearFormBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                        <span class="text-xl">🗑️</span>
+                        Limpiar Formulario
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="w-full max-w-4xl text-center text-gray-300 text-sm mt-8">
+        © Derechos Reservados Sha-Prosalmed.
+    </footer>
+
+    <script>
+        (function() {
+            // --- CONSTANTES Y ELEMENTOS DEL DOM ---
+            const form = document.getElementById('reportForm');
+            const messageBox = document.getElementById('messageBox');
+            const elapsedTimeDisplay = document.getElementById('elapsedTimeDisplay');
+            const generateWhatsAppBtn = document.getElementById('generateWhatsAppBtn');
+            const copyReportBtn = document.getElementById('copyReportBtn');
+            const clearFormBtn = document.getElementById('clearFormBtn');
+            const addToCalendarBtn = document.getElementById('addToCalendarBtn'); // Nuevo botón
+            const formInputs = {
+                reportDate: document.getElementById('reportDate'),
+                coordinator: document.getElementById('coordinator'),
+                location: document.getElementById('location'),
+                startTime: document.getElementById('startTime'),
+                endTime: document.getElementById('endTime'),
+                activities: document.getElementById('activities'),
+                observations: document.getElementById('observations'),
+            };
+            const LOCAL_STORAGE_KEY = 'prosalmedShaReportData';
+
+            // --- FUNCIONES AUXILIARES ---
+
+            function displayMessage(message, type) {
+                messageBox.textContent = message;
+                messageBox.className = 'p-3 rounded-lg mb-6 text-center font-medium';
+                const typeClasses = {
+                    success: 'bg-green-100 text-green-800',
+                    error: 'bg-red-100 text-red-800',
+                    info: 'bg-blue-100 text-blue-800'
+                };
+                messageBox.classList.remove('hidden');
+                messageBox.classList.add(...(typeClasses[type] || typeClasses.info).split(' '));
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 5000);
+            }
+
+            function calculateElapsedTime(startTimeStr, endTimeStr) {
+                if (!startTimeStr || !endTimeStr) return '--';
+                const [startHour, startMinute] = startTimeStr.split(':').map(Number);
+                const [endHour, endMinute] = endTimeStr.split(':').map(Number);
+                const startDate = new Date(2000, 0, 1, startHour, startMinute);
+                let endDate = new Date(2000, 0, 1, endHour, endMinute);
+                if (endDate < startDate) {
+                    endDate.setDate(endDate.getDate() + 1);
+                }
+                const diffMs = endDate.getTime() - startDate.getTime();
+                const diffMinutes = Math.round(diffMs / (1000 * 60));
+                const hours = Math.floor(diffMinutes / 60);
+                const minutes = diffMinutes % 60;
+                return `${hours} horas ${minutes} minutos`;
+            }
+
+            function formatTime(time) {
+                if (!time) return '';
+                const [h, m] = time.split(':');
+                const hour = parseInt(h, 10);
+                const period = hour >= 12 ? 'PM' : 'AM';
+                const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+                return `${String(formattedHour).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
+            }
+
+            function formatGoogleCalendarDate(dateObj) {
+                return dateObj.toISOString().replace(/-|:|\.\d{3}/g, '');
+            }
+            
+            function generateWhatsAppReport(reportData) {
+                return `
+*REPORTE JORNADA SHA* ✅
+---
+🗓️ *FECHA:* ${reportData.reportDate}
+⏰ *HORARIO:* ${reportData.startTime} - ${reportData.endTime}
+⏳ *TIEMPO TRANSCURRIDO:* ${reportData.elapsedTime}
+🧑‍💼 *RESPONSABLE SHA:* ${reportData.coordinator}
+📍 *CLIENTE:* ${reportData.location}
+---
+*ACTIVIDADES REALIZADAS:* 📋
+${reportData.activities}
+---
+*OBSERVACIONES:* 👁️
+${reportData.observations}
+---
+¡Excelente jornada! 👍
+                `.trim();
+            }
+
+            // --- LÓGICA DE LA APLICACIÓN ---
+
+            function getFormData() {
+                const data = {
+                    reportDate: formInputs.reportDate.value,
+                    coordinator: formInputs.coordinator.value.trim(),
+                    location: formInputs.location.value,
+                    startTime: formInputs.startTime.value,
+                    endTime: formInputs.endTime.value,
+                    activities: formInputs.activities.value.trim(),
+                    observations: formInputs.observations.value.trim(),
+                };
+
+                const requiredFields = ['reportDate', 'location', 'startTime', 'endTime', 'activities', 'observations', 'coordinator'];
+                const missingField = requiredFields.find(field => !data[field]);
+                if (missingField) {
+                    displayMessage('Por favor, completa todos los campos requeridos.', 'error');
+                    formInputs[missingField].focus();
+                    return null;
+                }
+
+                data.elapsedTime = calculateElapsedTime(data.startTime, data.endTime);
+                return data;
+            }
+
+            function updateElapsedTimeDisplay() {
+                const startTime = formInputs.startTime.value;
+                const endTime = formInputs.endTime.value;
+                elapsedTimeDisplay.textContent = `Tiempo Transcurrido: ${calculateElapsedTime(startTime, endTime)}`;
+            }
+
+            function saveFormToLocalStorage() {
+                const data = {
+                    reportDate: formInputs.reportDate.value,
+                    coordinator: formInputs.coordinator.value,
+                    location: formInputs.location.value,
+                    startTime: formInputs.startTime.value,
+                    endTime: formInputs.endTime.value,
+                    activities: formInputs.activities.value,
+                    observations: formInputs.observations.value,
+                };
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            }
+
+            function loadFormFromLocalStorage() {
+                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedData) {
+                    try {
+                        const data = JSON.parse(savedData);
+                        Object.keys(data).forEach(key => {
+                            if (formInputs[key]) {
+                                formInputs[key].value = data[key];
+                            }
+                        });
+                        return true;
+                    } catch (e) {
+                        console.error('Error al parsear datos de localStorage:', e);
+                        localStorage.removeItem(LOCAL_STORAGE_KEY);
+                        return false;
+                    }
+                }
+                return false;
+            }
+
+            function setDefaults() {
+                form.reset();
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                formInputs.reportDate.value = `${year}-${month}-${day}`;
+                updateElapsedTimeDisplay();
+                saveFormToLocalStorage();
+            }
+
+            // --- INICIALIZACIÓN Y MANEJADORES DE EVENTOS ---
+
+            function initialize() {
+                if (!loadFormFromLocalStorage()) {
+                    setDefaults();
+                }
+                updateElapsedTimeDisplay();
+
+                form.addEventListener('input', saveFormToLocalStorage);
+                formInputs.startTime.addEventListener('input', updateElapsedTimeDisplay);
+                formInputs.endTime.addEventListener('input', updateElapsedTimeDisplay);
+                
+                document.querySelectorAll('.activity-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const textarea = formInputs.activities;
+                        const newText = `- ${button.textContent.trim()}`;
+                        textarea.value = textarea.value.trim() === '' ? newText : `${textarea.value.trim()}\n${newText}`;
+                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    });
+                });
+
+                document.querySelectorAll('.observation-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const textarea = formInputs.observations;
+                        const newText = button.textContent.trim();
+                        textarea.value = textarea.value.trim() === '' ? newText : `${textarea.value.trim()}\n${newText}`;
+                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    });
+                });
+
+                generateWhatsAppBtn.addEventListener('click', function() {
+                    const reportData = getFormData();
+                    if (!reportData) return;
+                    const formattedData = { ...reportData,
+                        startTime: formatTime(reportData.startTime),
+                        endTime: formatTime(reportData.endTime)
+                    };
+                    const whatsappText = generateWhatsAppReport(formattedData);
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
+                    window.open(whatsappUrl, '_blank');
+                    displayMessage('Reporte generado. Revisa tu aplicación de WhatsApp. 🎉', 'success');
+                });
+
+                copyReportBtn.addEventListener('click', function() {
+                    const reportData = getFormData();
+                    if (!reportData) return;
+                    const formattedData = { ...reportData,
+                        startTime: formatTime(reportData.startTime),
+                        endTime: formatTime(reportData.endTime)
+                    };
+                    const reportText = generateWhatsAppReport(formattedData);
+                    
+                    const textArea = document.createElement("textarea");
+                    textArea.value = reportText;
+                    textArea.style.position = "fixed"; 
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        displayMessage('Reporte copiado al portapapeles. ¡Listo para pegar! 📋', 'success');
+                    } catch (err) {
+                        console.error('Fallback: Error al copiar:', err);
+                        displayMessage('No se pudo copiar el reporte.', 'error');
+                    }
+                    document.body.removeChild(textArea);
+                });
+
+                addToCalendarBtn.addEventListener('click', function() {
+                    const reportData = getFormData();
+                    if (!reportData) return;
+
+                    const startDate = new Date(`${reportData.reportDate}T${reportData.startTime}`);
+                    const endDate = new Date(`${reportData.reportDate}T${reportData.endTime}`);
+
+                    const title = `Jornada SHA: ${reportData.location} - ${reportData.coordinator}`;
+                    const details = `*ACTIVIDADES REALIZADAS:*\n${reportData.activities}\n\n*OBSERVACIONES:*\n${reportData.observations}`;
+                    
+                    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatGoogleCalendarDate(startDate)}/${formatGoogleCalendarDate(endDate)}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(reportData.location)}`;
+                    
+                    window.open(calendarUrl, '_blank');
+                    displayMessage('Abriendo Google Calendar para agendar el evento...', 'info');
+                });
+
+                clearFormBtn.addEventListener('click', function() {
+                    if (confirm('¿Estás seguro de que quieres limpiar todos los campos del formulario?')) {
+                        localStorage.removeItem(LOCAL_STORAGE_KEY);
+                        setDefaults();
+                        displayMessage('Formulario limpiado y listo para un nuevo registro.', 'info');
+                    }
+                });
+            }
+
+            initialize();
+        })();
+    </script>
+</body>
+</html>
+
+
