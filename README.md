@@ -1,1 +1,0 @@
-# subgerentesha-Fastmed.github.io
