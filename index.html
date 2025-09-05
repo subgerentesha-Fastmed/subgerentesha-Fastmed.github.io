@@ -370,7 +370,7 @@
                                 <option value="PRODUCTOS DE RODEHEZA C.A.">PRODUCTOS DE RODEHEZA C.A.</option>
                                 <option value="PRODUCTOS PENCO, S.A">PRODUCTOS PENCO, S.A</option>
                                 <option value="PROMOTORA 204 C.A.">PROMOTORA 204 C.A.</option>
-                                <option value="PROSALMED C.A. CCCT">PROSALMED C.A. CCCT</option>
+                                <option value="PROSALMED C.A. ROSAL">PROSALMED C.A. ROSAL</option>
                                 <option value="PROSALMED C.A. SBG">PROSALMED C.A. SBG</option>
                                 <option value="PROSALMED C.A. SEDE PRINCIPAL">PROSALMED C.A. SEDE PRINCIPAL</option>
                                 <option value="PROTECTOR DE METALES, C.A.">PROTECTOR DE METALES, C.A.</option>
@@ -390,6 +390,8 @@
                                 <option value="SERVILUBRO, C.A.">SERVILUBRO, C.A.</option>
                                 <option value="SHA DE VENEZUELA">SHA DE VENEZUELA</option>
                                 <option value="SNACKS MARACAY">SNACKS MARACAY</option>
+							    <option value="SNACKS VALENCIA">SNACKS VALENCIA</option>
+								<option value="SNACKS MARACAIBO">SNACKS MARACAIBO</option>
                                 <option value="SNACKS PTO ORDAZ">SNACKS PTO ORDAZ</option>
                                 <option value="SOLUCIONES LOGICAS I.A.I.G.">SOLUCIONES LOGICAS I.A.I.G.</option>
                                 <option value="TATA CONSULTANCY DE MARACAIBO, C.A.">TATA CONSULTANCY DE MARACAIBO, C.A.</option>
@@ -405,7 +407,7 @@
                                 <option value="VISA CEMEA HOLDINGS">VISA CEMEA HOLDINGS</option>
                                 <option value="VITA HERBAL SUPLEMENTOS ALIMENTICIOS C.A.">VITA HERBAL SUPLEMENTOS ALIMENTICIOS C.A.</option>
                                 <option value="ZIM VENEZUELA, C.A.">ZIM VENEZUELA, C.A.</option>
-                                <option value="OTRO">--- OTRO ---</option>
+                                <option value="OTRO">OTRO</option>
                             </select>
                         </div>
                         <div>
@@ -501,17 +503,19 @@
         </div>
     </div>
 
-    <!-- Modal de Edición de Informe -->
-    <div id="editReportModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 p-4">
+    <!-- Modal para exportar informe -->
+    <div id="exportReportModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 p-4">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
             <div class="p-4 border-b flex justify-between items-center">
-                 <h3 class="text-xl font-semibold">Editar Informe Antes de Descargar</h3>
+                 <h3 class="text-xl font-semibold">Exportar Informe Final</h3>
                  <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
             </div>
-            <div id="editableReportContent" class="p-6 overflow-y-auto" contenteditable="true" style="min-height: 400px; border: 1px solid #ddd;"></div>
+            <div id="editableReportContent" class="p-6 overflow-y-auto" contenteditable="true" style="min-height: 400px; border: 1px solid #ddd;">
+                 <!-- El contenido editable del informe se insertará aquí -->
+            </div>
             <div class="p-4 border-t bg-gray-50 flex justify-end gap-4">
                 <button id="cancelEditBtn" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-full">Cancelar</button>
-                <button id="saveAndDownloadBtn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full">Guardar y Descargar</button>
+                <button id="saveAndDownloadBtn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full">Descargar como Word</button>
             </div>
         </div>
     </div>
@@ -846,7 +850,10 @@
                 return "este último período";
             };
 
-            const intro = `<p>Durante ${getPeriodText()}, dedicamos un total de <strong>${formatMinutesToLongHours(totalMinutes)}</strong> de servicio a fortalecer la gestión de Seguridad y Salud Laboral (SSL) en las instalaciones de <strong>${cliente}</strong>. A continuación, te presento un resumen de los logros más importantes y los próximos pasos a seguir.</p>`;
+            const intro = `<h1>INFORME DE GESTIÓN</h1>
+                           <p><strong>PERÍODO:</strong> ${reports[reports.length-1].reportDate} AL ${reports[0].reportDate}</p>
+                           <p><strong>ASESOR SHA RESPONSABLE:</strong> ${responsable.toUpperCase()}</p>
+                           <p>Durante ${getPeriodText()}, dedicamos un total de <strong>${formatMinutesToLongHours(totalMinutes)}</strong> de servicio a fortalecer la gestión de Seguridad y Salud Laboral (SSL) en las instalaciones de <strong>${cliente}</strong>. A continuación, te presento un resumen de los logros más importantes y los próximos pasos a seguir.</p>`;
 
             // Categorize activities
             const categories = {
@@ -894,13 +901,13 @@
                 <div class="fade-in-slide-up border rounded-lg p-6 bg-gray-50">
                     ${finalReportHTML}
                     <div class="mt-8 pt-6 border-t text-center print-hidden">
-                        <button id="downloadWordBtn" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition">Descargar Informe en Word</button>
+                        <button id="downloadWordBtn" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition">Generar Informe</button>
                     </div>
                 </div>`;
             
             document.getElementById('downloadWordBtn').addEventListener('click', () => {
                 document.getElementById('editableReportContent').innerHTML = finalReportHTML;
-                document.getElementById('editReportModal').classList.remove('hidden');
+                document.getElementById('exportReportModal').classList.remove('hidden');
             });
         }
         
@@ -999,7 +1006,7 @@
             document.getElementById('generateReportBtn').addEventListener('click', generateDetailedReport);
             
             // Modal listeners
-            const modal = document.getElementById('editReportModal');
+            const modal = document.getElementById('exportReportModal');
             const saveBtn = document.getElementById('saveAndDownloadBtn');
             document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
             document.getElementById('cancelEditBtn').addEventListener('click', () => modal.classList.add('hidden'));
@@ -1009,21 +1016,23 @@
                     return showMessage('Error: Las librerías de exportación no se cargaron. Revise la conexión a internet.', 'error');
                 }
                 
-                const originalText = saveBtn.innerHTML;
+                const originalText = saveBtn.textContent;
                 saveBtn.disabled = true;
-                saveBtn.classList.add('flex', 'items-center', 'justify-center');
-                saveBtn.innerHTML = `
-                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Generando...
-                `;
-
+                saveBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"></svg> Generando...`;
+                
                 try {
                     const content = document.getElementById('editableReportContent').innerHTML;
+                    const styles = `
+                        body { font-family: Calibri, sans-serif; font-size: 11pt; }
+                        h1 { font-size: 16pt; font-weight: bold; }
+                        h2 { font-size: 14pt; font-weight: bold; color: #2E74B5; }
+                        h3 { font-size: 12pt; font-weight: bold; color: #365F91; }
+                        p { margin-bottom: 10px; }
+                        ul { margin-left: 20px; }
+                        strong { font-weight: bold; }
+                    `;
                     
-                    const fileBuffer = await window.htmlToDocx(content);
+                    const fileBuffer = await window.htmlToDocx(content, { title: 'Informe de Actividades SHA', style: styles });
                     
                     saveAs(fileBuffer, 'informe_sha_generado.docx');
                     modal.classList.add('hidden');
@@ -1033,7 +1042,6 @@
                 } finally {
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = originalText;
-                    saveBtn.classList.remove('flex', 'items-center', 'justify-center');
                 }
             });
         };
