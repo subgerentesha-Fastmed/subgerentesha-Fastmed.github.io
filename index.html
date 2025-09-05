@@ -513,13 +513,14 @@
             if (unsubscribeReports) {
                 unsubscribeReports(); // Prevent multiple listeners
             }
-             // Simplified collection path
+            showSpinner(true);
             const q = query(collection(db, "shaReports"));
             unsubscribeReports = onSnapshot(q, (snapshot) => {
                 allReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 allReports.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
                 populateFilterDropdowns();
                 applyFilters();
+                showSpinner(false);
             }, (error) => {
                 console.error("Error listening to reports:", error);
                 if (error.code === 'permission-denied') {
@@ -527,6 +528,7 @@
                 } else {
                      showMessage('Error al cargar los reportes.', 'error');
                 }
+                showSpinner(false);
             });
         }
 
@@ -693,8 +695,8 @@
             
             const getPeriodText = () => {
                 if (reports.length < 2) return "el último período";
-                const firstDate = new Date(reports[0].reportDate);
-                const lastDate = new Date(reports[reports.length - 1].reportDate);
+                const firstDate = new Date(reports[reports.length - 1].reportDate);
+                const lastDate = new Date(reports[0].reportDate);
                 const diffDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
                 if (diffDays >= 28 && diffDays <= 31) return "este último mes";
                 if (diffDays >= 6 && diffDays <= 8) return "esta última semana";
@@ -875,4 +877,3 @@
     </script>
 </body>
 </html>
-
