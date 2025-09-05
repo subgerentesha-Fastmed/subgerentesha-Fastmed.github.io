@@ -869,21 +869,31 @@
             document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
             document.getElementById('cancelEditBtn').addEventListener('click', () => modal.classList.add('hidden'));
             document.getElementById('saveAndDownloadBtn').addEventListener('click', async () => {
+                if (typeof htmlToDocx === 'undefined' || typeof saveAs === 'undefined') {
+                    showMessage('Error: Las librerías de exportación no se cargaron. Revise la conexión a internet.', 'error');
+                    return;
+                }
+                
                 showSpinner(true);
-                const content = document.getElementById('editableReportContent').innerHTML;
-                 const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
-                    "xmlns:w='urn:schemas-microsoft-com:office:word' "+
-                    "xmlns='http://www.w3.org/TR/REC-html40'>"+
-                    "<head><meta charset='utf-8'><title>Export HTML to Word Document</title></head><body>";
-                const footer = "</body></html>";
-                const sourceHTML = header+content+footer;
-                const fileBuffer = await window.htmlToDocx.asBlob(sourceHTML);
-                window.saveAs(fileBuffer, 'informe_sha_generado.docx');
-                showSpinner(false);
-                modal.classList.add('hidden');
+                try {
+                    const content = document.getElementById('editableReportContent').innerHTML;
+                    const header = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>Informe</title></head><body>`;
+                    const footer = "</body></html>";
+                    const sourceHTML = header + content + footer;
+
+                    const fileBuffer = await htmlToDocx.asBlob(sourceHTML);
+                    
+                    saveAs(fileBuffer, 'informe_sha_generado.docx');
+
+                    modal.classList.add('hidden');
+                } catch (error) {
+                    console.error("Error al generar el documento de Word:", error);
+                    showMessage('Ocurrió un error al generar el documento. Revise la consola para más detalles.', 'error');
+                } finally {
+                    showSpinner(false);
+                }
             });
         };
     </script>
 </body>
 </html>
-
