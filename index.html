@@ -866,15 +866,26 @@
             
             // Modal listeners
             const modal = document.getElementById('editReportModal');
+            const saveBtn = document.getElementById('saveAndDownloadBtn');
             document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
             document.getElementById('cancelEditBtn').addEventListener('click', () => modal.classList.add('hidden'));
-            document.getElementById('saveAndDownloadBtn').addEventListener('click', async () => {
+            
+            saveBtn.addEventListener('click', async () => {
                 if (typeof htmlToDocx === 'undefined' || typeof saveAs === 'undefined') {
-                    showMessage('Error: Las librerías de exportación no se cargaron. Revise la conexión a internet.', 'error');
-                    return;
+                    return showMessage('Error: Las librerías de exportación no se cargaron. Revise la conexión a internet.', 'error');
                 }
                 
-                showSpinner(true);
+                const originalText = saveBtn.innerHTML;
+                saveBtn.disabled = true;
+                saveBtn.classList.add('flex', 'items-center', 'justify-center');
+                saveBtn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generando...
+                `;
+
                 try {
                     const content = document.getElementById('editableReportContent').innerHTML;
                     const header = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>Informe</title></head><body>`;
@@ -884,16 +895,19 @@
                     const fileBuffer = await htmlToDocx.asBlob(sourceHTML);
                     
                     saveAs(fileBuffer, 'informe_sha_generado.docx');
-
                     modal.classList.add('hidden');
                 } catch (error) {
                     console.error("Error al generar el documento de Word:", error);
-                    showMessage('Ocurrió un error al generar el documento. Revise la consola para más detalles.', 'error');
+                    showMessage('Ocurrió un error al generar el documento. Revise la consola.', 'error');
                 } finally {
-                    showSpinner(false);
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.classList.remove('flex', 'items-center', 'justify-center');
                 }
             });
         };
     </script>
 </body>
 </html>
+
+
