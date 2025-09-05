@@ -3,448 +3,876 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Actividades SHA PROSALMED</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Herramienta Unificada de Reportes SHA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Librerías para Análisis y Exportación -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://unpkg.com/html-to-docx@1.8.0/dist/html-to-docx.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            /* Fondo inspirado en la imagen con brillos laterales */
             background-color: #0c1021;
-            background-image: radial-gradient(ellipse 80% 80% at 0% 50%, rgba(0, 85, 255, 0.6) 0%, transparent 100%), radial-gradient(ellipse 80% 80% at 100% 50%, rgba(255, 0, 51, 0.6) 0%, transparent 100%);
+            background-image: radial-gradient(ellipse 80% 80% at 0% 50%, rgba(0, 85, 255, 0.5) 0%, transparent 100%), radial-gradient(ellipse 80% 80% at 100% 50%, rgba(255, 0, 51, 0.5) 0%, transparent 100%);
             background-attachment: fixed;
         }
-        /* Barra de desplazamiento personalizada para una estética mejorada */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .tab-button {
+            transition: all 0.3s ease;
         }
-        ::-webkit-scrollbar-track {
-            background: #1e293b; /* slate-800 */
-            border-radius: 10px;
+        .tab-button.active {
+            background-color: #1e3a8a;
+            color: white;
+            border-bottom: 3px solid #f59e0b;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #3b82f6; /* blue-500 */
-            border-radius: 10px;
+        .message-box {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.5s ease-in-out;
+            pointer-events: none;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #2563eb; /* blue-600 */
+        .message-box.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(10px);
+        }
+        .fade-in-slide-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInSlideUp 0.5s ease-out forwards;
+        }
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Estilos para el informe generado */
+        .report-content h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+         .report-content h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .report-content p {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+        .report-content ul {
+            list-style-position: inside;
+            list-style-type: disc;
+            margin-left: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media print {
+            .print-hidden { display: none; }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+<body class="min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8">
 
-    <!-- Logo de la Empresa -->
-    <div class="mb-6">
-        <img src="https://static.wixstatic.com/media/8b1764_8e8af4e9fbd54ef085bc68a18999d35d~mv2.png/v1/fill/w_540,h_222,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/2-fondo%20blanco%20horizontal%202.png" alt="Sha-Prosalmed Logo" class="mx-auto h-20 sm:h-24 w-auto">
+    <!-- Mensajes Globales -->
+    <div id="message-box" class="message-box"></div>
+    <div id="globalSpinner" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex justify-center items-center z-[60]">
+        <div class="spinner"></div>
+        <p class="ml-4 text-white text-lg">Procesando...</p>
     </div>
 
-    <!-- Encabezado -->
-    <header class="w-full max-w-4xl bg-gray-900/50 backdrop-blur-sm p-4 rounded-t-xl shadow-lg h-16">
-        <!-- Contenido del encabezado eliminado para un diseño más limpio -->
-    </header>
+    <div class="w-full max-w-5xl mb-16">
+        <div class="flex flex-col items-center mb-6">
+            <img src="https://static.wixstatic.com/media/8b1764_8e8af4e9fbd54ef085bc68a18999d35d~mv2.png/v1/fill/w_540,h_222,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/2-fondo%20blanco%20horizontal%202.png" alt="Logo SHA-PROSALMED" class="h-20 mb-4">
+            <h1 class="text-3xl font-bold text-white text-center">Herramienta de Gestión de Actividades SHA</h1>
+        </div>
+        
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full">
+            <!-- Pestañas de Navegación -->
+            <div class="flex justify-center border-b-2 border-gray-200 mb-6">
+                <button id="tab-registro" class="tab-button px-6 py-3 font-semibold text-gray-600 active focus:outline-none">Registro de Actividades</button>
+                <button id="tab-supervisor" class="tab-button px-6 py-3 font-semibold text-gray-600 focus:outline-none">Panel Supervisor</button>
+            </div>
 
-    <!-- Contenedor Principal -->
-    <main class="w-full max-w-4xl bg-white p-6 sm:p-8 rounded-b-xl shadow-2xl border-t-4 border-red-500">
-        <div id="messageBox" class="hidden text-center font-medium"></div>
+            <!-- Contenido Pestaña 1: Registro de Actividades -->
+            <div id="content-registro">
+                <section>
+                    <h2 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 border-b-2 border-red-400 pb-2">Registrar Nueva Jornada</h2>
+                    <form id="reportForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                        <!-- Campos del formulario -->
+                        <div>
+                            <label for="reportDate" class="block text-gray-700 text-sm font-semibold mb-2">Fecha:</label>
+                            <input type="date" id="reportDate" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="coordinator" class="block text-gray-700 text-sm font-semibold mb-2">Responsable SHA:</label>
+                            <select id="coordinator" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="" disabled selected>Selecciona un responsable</option>
+                                <option value="Adelvy Piñango">Adelvy Piñango</option>
+                                <option value="Arturo Gomez">Arturo Gomez</option>
+                                <option value="Carlos Vera">Carlos Vera</option>
+                                <option value="Damiany Reyes">Damiany Reyes</option>
+                                <option value="Daniel García">Daniel García</option>
+                                <option value="Darwin Gómez">Darwin Gómez</option>
+                                <option value="Douglas Vásquez">Douglas Vásquez</option>
+                                <option value="Erika Piñero">Erika Piñero</option>
+                                <option value="Francisco Enrique">Francisco Enrique</option>
+                                <option value="Gregvir Rodríguez">Gregvir Rodríguez</option>
+                                <option value="Izkarlette Rodríguez">Izkarlette Rodríguez</option>
+                                <option value="José Cova">José Cova</option>
+                                <option value="Karem Doriela">Karem Doriela</option>
+                                <option value="María Hernández">María Hernández</option>
+                                <option value="Osmel Ventura">Osmel Ventura</option>
+                                <option value="Wilmer Peña">Wilmer Peña</option>
+                                <option value="Yoraco Gonzalez">Yoraco Gonzalez</option>
+                                <option value="Yris Parra">Yris Parra</option>
+                                <option value="Neomar Funes">Neomar Funes</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                             <label for="location" class="block text-gray-700 text-sm font-semibold mb-2">Cliente:</label>
+                            <select id="location" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="" disabled selected>Selecciona un cliente</option>
+                                <option value="A&S CONSULTORES, C.A.">A&S CONSULTORES, C.A.</option>
+                                <option value="ACADEMIA DE CIENCIAS FISICAS, MATEMATICAS Y NATURALES">ACADEMIA DE CIENCIAS FISICAS, MATEMATICAS Y NATURALES</option>
+                                <option value="ADMINISTRACION LOBO, C.A.">ADMINISTRACION LOBO, C.A.</option>
+                                <option value="ADMINISTRADORA AEROVIP, C.A.">ADMINISTRADORA AEROVIP, C.A.</option>
+                                <option value="ADMINISTRADORA SOLUNA C.A.">ADMINISTRADORA SOLUNA C.A.</option>
+                                <option value="ASCENSORES SCHINDLER DE VENEZUELA S.A">ASCENSORES SCHINDLER DE VENEZUELA S.A</option>
+                                <option value="ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS">ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS</option>
+                                <option value="AUTOPIEZAS Y ACCESORIOS GAMBOA PLAZA II">AUTOPIEZAS Y ACCESORIOS GAMBOA PLAZA II</option>
+                                <option value="AUTOPARTES RYJ 4011, C.A.">AUTOPARTES RYJ 4011, C.A.</option>
+                                <option value="AUTOSUMINISTROS J.R.,C.A.">AUTOSUMINISTROS J.R.,C.A.</option>
+                                <option value="BANCO ACTIVO C.A.">BANCO ACTIVO C.A.</option>
+                                <option value="BAYER, S.A.">BAYER, S.A.</option>
+                                <option value="BOLSA DE VALORES DE CARACAS C.A, S.A.">BOLSA DE VALORES DE CARACAS C.A, S.A.</option>
+                                <option value="C.V.V. CAJA VENEZOLANA DE VALORES, S.A.">C.V.V. CAJA VENEZOLANA DE VALORES, S.A.</option>
+                                <option value="CAF - (Banco de Desarrollo de América Latina)">CAF - (Banco de Desarrollo de América Latina)</option>
+                                <option value="CAMARA DE COMERCIO E INDUSTRIA Y SERVICIOS DE CARACAS">CAMARA DE COMERCIO E INDUSTRIA Y SERVICIOS DE CARACAS</option>
+                                <option value="CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)">CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)</option>
+                                <option value="CARACAS SOUL C.A.">CARACAS SOUL C.A.</option>
+                                <option value="CASA DE CAMBIOS INSULAR, ORTIZ, C.A.">CASA DE CAMBIOS INSULAR, ORTIZ, C.A.</option>
+                                <option value="CASA HELLAS (LA SUCURSAL) C.A 1-E">CASA HELLAS (LA SUCURSAL) C.A 1-E</option>
+                                <option value="CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.">CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.</option>
+                                <option value="CINESA">CINESA</option>
+                                <option value="CINES UNIDOS">CINES UNIDOS</option>
+                                <option value="COMERCIAL FERRE-LEANNO">COMERCIAL FERRE-LEANNO</option>
+                                <option value="COMERCIALIZADORA LA ESQUINA DE QUINTA CRESPO 2021, C.A.">COMERCIALIZADORA LA ESQUINA DE QUINTA CRESPO 2021, C.A.</option>
+                                <option value="COMPAÑIA DE ALIMENTOS LATINOAMERICANA DE VENEZUELA (CALSA), S.A">COMPAÑIA DE ALIMENTOS LATINOAMERICANA DE VENEZUELA (CALSA), S.A</option>
+                                <option value="CONDOMINIO CENTRO COMERCIAL CITY MARKET">CONDOMINIO CENTRO COMERCIAL CITY MARKET</option>
+                                <option value="CONDOMINIO CENTRO EMPRESARIAL B.O.D.E. BANK">CONDOMINIO CENTRO EMPRESARIAL B.O.D.E. BANK</option>
+                                <option value="CONDOMINIO CONJUNTO PORTAL ALAMEDA">CONDOMINIO CONJUNTO PORTAL ALAMEDA</option>
+                                <option value="CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.">CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.</option>
+                                <option value="CONSORCIO GRUPO KHIOS">CONSORCIO GRUPO KHIOS</option>
+                                <option value="CORPORACION ALASKA 1807, C.A.">CORPORACION ALASKA 1807, C.A.</option>
+                                <option value="CORPORACION SUI CHI 78, C.A.">CORPORACION SUI CHI 78, C.A.</option>
+                                <option value="DAYCO HOST, C.A">DAYCO HOST, C.A</option>
+                                <option value="DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.">DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.</option>
+                                <option value="DEWARS Y CIA,ABOGADOS MIEMBROS DE DENTONS S.C.">DEWARS Y CIA,ABOGADOS MIEMBROS DE DENTONS S.C.</option>
+                                <option value="DICAM SISTEMAS INTELIGENTES C.A">DICAM SISTEMAS INTELIGENTES C.A</option>
+                                <option value="DIGITEL MARACAY">DIGITEL MARACAY</option>
+                                <option value="DISTRIBUIDORA 2803, C.A.">DISTRIBUIDORA 2803, C.A.</option>
+                                <option value="DISTRIBUIDORA LA RUTA DEL POLLO, C.A.">DISTRIBUIDORA LA RUTA DEL POLLO, C.A.</option>
+                                <option value="EAGLEBURGMANN VENEZUELA, C.A.">EAGLEBURGMANN VENEZUELA, C.A.</option>
+                                <option value="EDIFICIO ASOCIACION BANCARIA DE TRABAJO, C.A">EDIFICIO ASOCIACION BANCARIA DE TRABAJO, C.A</option>
+                                <option value="ELECTRODOMESTICOS DELIMARTH C.A.">ELECTRODOMESTICOS DELIMARTH C.A.</option>
+                                <option value="FRIGORIFICO EL DIAMANTE DE LA CARNE">FRIGORIFICO EL DIAMANTE DE LA CARNE</option>
+                                <option value="GRUPO CEPAS, C.A.">GRUPO CEPAS, C.A.</option>
+                                <option value="GRUPO DIAGNOSTICO CARACAS, C.A.">GRUPO DIAGNOSTICO CARACAS, C.A.</option>
+                                <option value="GRUPO INFOGUIANET, C.A.">GRUPO INFOGUIANET, C.A.</option>
+                                <option value="GRUPO INTEXUS">GRUPO INTEXUS</option>
+                                <option value="H2 FOOD SERVICE, C.A.">H2 FOOD SERVICE, C.A.</option>
+                                <option value="HOSPITALAR C.A">HOSPITALAR C.A</option>
+                                <option value="HUMANITAS ADMINISTRADORA DE RIESGOS, S.A - KYNDRYL">HUMANITAS ADMINISTRADORA DE RIESGOS, S.A - KYNDRYL</option>
+                                <option value="IMPORTADORA BICIMOTO LTDA C.A.">IMPORTADORA BICIMOTO LTDA C.A.</option>
+                                <option value="INDUSTRIA DE PINTURAS VENEZUELA C.A.">INDUSTRIA DE PINTURAS VENEZUELA C.A.</option>
+                                <option value="INSTITUTO DE ESTUDIOS SUPERIORES DE ADMINISTRACION - IESA">INSTITUTO DE ESTUDIOS SUPERIORES DE ADMINISTRACION - IESA</option>
+                                <option value="INSTITUTO DE OTORRINOLARINGOLOGIA, C.A.">INSTITUTO DE OTORRINOLARINGOLOGIA, C.A.</option>
+                                <option value="INTERCONTINENTAL">INTERCONTINENTAL</option>
+                                <option value="INVERSIONES 36N 33, C.A.">INVERSIONES 36N 33, C.A.</option>
+                                <option value="INVERSIONES OTAPE C.A">INVERSIONES OTAPE C.A</option>
+                                <option value="INVERSIONES PANADERIA-24/7, C.A.">INVERSIONES PANADERIA-24/7, C.A.</option>
+                                <option value="INVERSIONES PARKIAZA, C.A.">INVERSIONES PARKIAZA, C.A.</option>
+                                <option value="INVERSIONES QUIMIVECO 3, C.A">INVERSIONES QUIMIVECO 3, C.A</option>
+                                <option value="INVERSIONES RAFATI II C.A.">INVERSIONES RAFATI II C.A.</option>
+                                <option value="INVERSIONES RML CARACAS C.A.">INVERSIONES RML CARACAS C.A.</option>
+                                <option value="INVERSORA MELKIM">INVERSORA MELKIM</option>
+                                <option value="JIKIA, S.A.">JIKIA, S.A.</option>
+                                <option value="JTI DE VENEZUELA, S.A.">JTI DE VENEZUELA, S.A.</option>
+                                <option value="JURAEVENTUM, C.A.">JURAEVENTUM, C.A.</option>
+                                <option value="L'ALIS VENEZUELA C.A">L'ALIS VENEZUELA C.A</option>
+                                <option value="LIMPIADORES & CULTURAL SERVICE SHA P.A.">LIMPIADORES & CULTURAL SERVICE SHA P.A.</option>
+                                <option value="LIMPIADORES INDUSTRIALES LIPESA S.A.">LIMPIADORES INDUSTRIALES LIPESA S.A.</option>
+                                <option value="LYC GROUP.VE">LYC GROUP.VE</option>
+                                <option value="MABE VENEZUELA C.A.">MABE VENEZUELA C.A.</option>
+                                <option value="MASTERCARD VENEZUELA, INC.">MASTERCARD VENEZUELA, INC.</option>
+                                <option value="MECANICA Y ADMINISTRACION, C.A.">MECANICA Y ADMINISTRACION, C.A.</option>
+                                <option value="OLIVEN, C.A.">OLIVEN, C.A.</option>
+                                <option value="OTAOLA INGENIERIA C.A.">OTAOLA INGENIERIA C.A.</option>
+                                <option value="OXICORP, C.A.">OXICORP, C.A.</option>
+                                <option value="PEPSICO MARACAY">PEPSICO MARACAY</option>
+                                <option value="PETROLERA MIX">PETROLERA MIX</option>
+                                <option value="PRODUCTOS DE RODEHEZA C.A.">PRODUCTOS DE RODEHEZA C.A.</option>
+                                <option value="PRODUCTOS PENCO, S.A">PRODUCTOS PENCO, S.A</option>
+                                <option value="PROMOTORA 204 C.A.">PROMOTORA 204 C.A.</option>
+                                <option value="PROSALMED C.A. CCCT">PROSALMED C.A. CCCT</option>
+                                <option value="PROSALMED C.A. SBG">PROSALMED C.A. SBG</option>
+                                <option value="PROSALMED C.A. SEDE PRINCIPAL">PROSALMED C.A. SEDE PRINCIPAL</option>
+                                <option value="PROTECTOR DE METALES, C.A.">PROTECTOR DE METALES, C.A.</option>
+                                <option value="PROYECTO ESPERANZA A.C.">PROYECTO ESPERANZA A.C.</option>
+                                <option value="QUIMICA LUMINOSIDAD QUIMISUCA">QUIMICA LUMINOSIDAD QUIMISUCA</option>
+                                <option value="REASEGURADORA DELTA, C.A.">REASEGURADORA DELTA, C.A.</option>
+                                <option value="REASEGURADORA R.I.A.T., S.A.">REASEGURADORA R.I.A.T., S.A.</option>
+                                <option value="REPRESENTACIONES GALA">REPRESENTACIONES GALA</option>
+                                <option value="RESIDENCIAS AVILAMBRA, C.A.">RESIDENCIAS AVILAMBRA, C.A.</option>
+                                <option value="RESTAURANT IMPORT & EXPORTDT">RESTAURANT IMPORT & EXPORTDT</option>
+                                <option value="RH AMWAY IMPORT EVENT DE VENEZUELA, C.A.">RH AMWAY IMPORT EVENT DE VENEZUELA, C.A.</option>
+                                <option value="SAKAM VIAJES Y TURISMO S.A">SAKAM VIAJES Y TURISMO S.A</option>
+                                <option value="SAMSUNG ELECTRONICS">SAMSUNG ELECTRONICS</option>
+                                <option value="SEAPORT AGENCIES, S.A.">SEAPORT AGENCIES, S.A.</option>
+                                <option value="SERVICIOS PARAMEDICOS OF, C.A.">SERVICIOS PARAMEDICOS OF, C.A.</option>
+                                <option value="SERVICIO Y MANTENIMIENTO C.C.A.L. 75, C.A.">SERVICIO Y MANTENIMIENTO C.C.A.L. 75, C.A.</option>
+                                <option value="SERVILUBRO, C.A.">SERVILUBRO, C.A.</option>
+                                <option value="SHA DE VENEZUELA">SHA DE VENEZUELA</option>
+                                <option value="SNACKS MARACAY">SNACKS MARACAY</option>
+                                <option value="SNACKS PTO ORDAZ">SNACKS PTO ORDAZ</option>
+                                <option value="SOLUCIONES LOGICAS I.A.I.G.">SOLUCIONES LOGICAS I.A.I.G.</option>
+                                <option value="TATA CONSULTANCY DE MARACAIBO, C.A.">TATA CONSULTANCY DE MARACAIBO, C.A.</option>
+                                <option value="TAUREL & CIA., SUCRS., C.A.">TAUREL & CIA., SUCRS., C.A.</option>
+                                <option value="TEALCA SANTA ROSA">TEALCA SANTA ROSA</option>
+                                <option value="TOYOTA DE VENEZUELA, C.A.">TOYOTA DE VENEZUELA, C.A.</option>
+                                <option value="TRANSPORTE RYJ 4011, C.A">TRANSPORTE RYJ 4011, C.A</option>
+                                <option value="UNICA SANTA FE NORTE PISO 99 C.A">UNICA SANTA FE NORTE PISO 99 C.A</option>
+                                <option value="UNIDAD EDUCATIVA COLEGIO ACADEMIA MERICI .A.C">UNIDAD EDUCATIVA COLEGIO ACADEMIA MERICI .A.C</option>
+                                <option value="VALE TV,C.A.">VALE TV,C.A.</option>
+                                <option value="VALORES CASA DE BOLSA C.A.">VALORES CASA DE BOLSA C.A.</option>
+                                <option value="VAN DER IMPORT, C.A">VAN DER IMPORT, C.A</option>
+                                <option value="VISA CEMEA HOLDINGS">VISA CEMEA HOLDINGS</option>
+                                <option value="VITA HERBAL SUPLEMENTOS ALIMENTICIOS C.A.">VITA HERBAL SUPLEMENTOS ALIMENTICIOS C.A.</option>
+                                <option value="ZIM VENEZUELA, C.A.">ZIM VENEZUELA, C.A.</option>
+                                <option value="OTRO">--- OTRO ---</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="startTime" class="block text-gray-700 text-sm font-semibold mb-2">Hora Inicio:</label>
+                            <input type="time" id="startTime" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="endTime" class="block text-gray-700 text-sm font-semibold mb-2">Hora Fin:</label>
+                            <input type="time" id="endTime" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2 text-center mt-2 p-3 bg-blue-50 rounded-lg text-blue-800 font-bold text-lg">
+                            <span id="elapsedTimeDisplay">Tiempo Transcurrido: --</span>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="activities" class="block text-gray-700 text-sm font-semibold mb-2">Actividades Realizadas:</label>
+                             <div id="activityButtons" class="flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Inspección de campo</button>
+                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Reunión de seguridad</button>
+                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Capacitación de personal</button>
+                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Recorrido por instalaciones</button>
+                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Verificación de EPP</button>
+                            </div>
+                            <textarea id="activities" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Describe las actividades realizadas..."></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="observations" class="block text-gray-700 text-sm font-semibold mb-2">Observaciones:</label>
+                            <div id="observationButtons" class="flex flex-wrap gap-2 mb-2">
+                                 <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Jornada sin novedad</button>
+                                 <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Se observó buen uso de EPP</button>
+                                 <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Se requiere seguimiento a...</button>
+                                 <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Personal colaboró con las medidas</button>
+                            </div>
+                            <textarea id="observations" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Añade cualquier observación relevante..."></textarea>
+                        </div>
+                        <!-- Botones de Acción -->
+                        <div class="md:col-span-2 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-6">
+                            <button type="button" id="saveReportBtn" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">Guardar Reporte</button>
+                            <button type="button" id="generateWhatsAppBtn" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none">Enviar por WhatsApp</button>
+                            <button type="button" id="addToCalendarBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
+                                <span class="text-xl">🗓️</span>
+                                Agendar
+                            </button>
+                            <button type="button" id="clearFormBtn" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none">Limpiar</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
 
-        <!-- Sección del Formulario -->
-        <section class="mb-8">
-            <h2 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 border-b-2 border-red-400 pb-2">Registrar Nueva Jornada</h2>
-            <form id="reportForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                <!-- Fecha -->
-                <div>
-                    <label for="reportDate" class="block text-gray-700 text-sm font-semibold mb-2">Fecha:</label>
-                    <input type="date" id="reportDate" name="reportDate"
-                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+            <!-- Contenido Pestaña 2: Panel Supervisor -->
+            <div id="content-supervisor" class="hidden">
+                <div id="supervisor-login" class="flex flex-col items-center space-y-4 p-8">
+                    <p class="text-lg font-semibold text-gray-700">Ingresa la clave de supervisor</p>
+                    <input type="password" id="supervisor-key" class="w-full max-w-xs p-2 border rounded-md" placeholder="Clave de acceso">
+                    <button id="login-button" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none">Acceder</button>
                 </div>
+                
+                <div id="supervisor-dashboard" class="hidden">
+                    <section class="p-4 bg-indigo-50 rounded-lg shadow-md border border-indigo-200">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-indigo-400 pb-2">Análisis y Filtros</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="coordinatorFilter" class="block text-sm font-semibold">Filtrar por Responsable:</label>
+                                <select id="coordinatorFilter" class="w-full p-2 border rounded-lg bg-white"></select>
+                            </div>
+                            <div>
+                                <label for="locationFilter" class="block text-sm font-semibold">Filtrar por Cliente:</label>
+                                <select id="locationFilter" class="w-full p-2 border rounded-lg bg-white"></select>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap justify-center gap-4 mt-4">
+                            <button id="applyFiltersBtn" class="px-6 py-2 bg-purple-500 text-white font-bold rounded-full">Aplicar Filtros</button>
+                            <button id="clearFiltersBtn" class="px-6 py-2 bg-gray-400 text-white font-bold rounded-full">Limpiar</button>
+                            <button id="generateReportBtn" class="px-6 py-2 bg-teal-500 text-white font-bold rounded-full">Generar Informe</button>
+                        </div>
+                    </section>
 
-                <!-- Responsable SHA -->
-                <div>
-                    <label for="coordinator" class="block text-gray-700 text-sm font-semibold mb-2">Responsable SHA:</label>
-                    <input type="text" id="coordinator" name="coordinator" placeholder="Ej: Darwin Gómez"
-                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                    <section id="analyticsSection" class="hidden mt-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-yellow-500 pb-2">Estadísticas</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                           <div id="clientTimeChart" class="bg-white p-4 rounded-lg shadow-md h-80"></div>
+                           <div id="coordinatorTimeChart" class="bg-white p-4 rounded-lg shadow-md h-80"></div>
+                        </div>
+                    </section>
+
+                    <section class="mt-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-gray-400 pb-2">Historial de Reportes</h3>
+                        <div id="pastParsedReportsList" class="space-y-3 max-h-96 overflow-y-auto pr-2"></div>
+                    </section>
+
+                    <section id="reportContainer" class="mt-6"></section>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <!-- Cliente (Dropdown) -->
-                <div class="md:col-span-2">
-                    <label for="location" class="block text-gray-700 text-sm font-semibold mb-2">Cliente:</label>
-                    <select id="location" name="location" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 bg-white">
-                        <option value="" disabled selected>Selecciona un cliente</option>
-                        <option value="A&S CONSULTORES, C.A.">A&S CONSULTORES, C.A.</option>
-                        <option value="ADMINISTRADORA 302, C.A.">ADMINISTRADORA 302, C.A.</option>
-                        <option value="ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS">ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS</option>
-                        <option value="BANCO ACTIVO,C.A.">BANCO ACTIVO,C.A.</option>
-                        <option value="BAYER, S.A.">BAYER, S.A.</option>
-                        <option value="CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)">CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)</option>
-                        <option value="CARACAS SOUL C.A.">CARACAS SOUL C.A.</option>
-                        <option value="CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.">CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.</option>
-                        <option value="CONDOMINIO CENTRO COMERCIAL CITY MARKET">CONDOMINIO CENTRO COMERCIAL CITY MARKET</option>
-                        <option value="CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.">CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.</option>
-                        <option value="DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.">DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.</option>
-                        <option value="DICAM SISTEMAS INTELIGENTES C.A">DICAM SISTEMAS INTELIGENTES C.A</option>
-                        <option value="EAGLEBURGMANN VENEZUELA, C.A.">EAGLEBURGMANN VENEZUELA, C.A.</option>
-                        <option value="GRUPO INFOGUIANET, C.A.">GRUPO INFOGUIANET, C.A.</option>
-                        <option value="GRUPO INTEXUS C.A">GRUPO INTEXUS C.A</option>
-                        <option value="H2 FOOD SERVICE, C.A.">H2 FOOD SERVICE, C.A.</option>
-                        <option value="IMPORTADORA BICIMOTO LTDA C.A.">IMPORTADORA BICIMOTO LTDA C.A.</option>
-                        <option value="INVERSIONES OTAPE C.A.">INVERSIONES OTAPE C.A.</option>
-                        <option value="INVERSIONES QUIMIVECO 3, C.A">INVERSIONES QUIMIVECO 3, C.A</option>
-                        <option value="INVERSORA MELKIM">INVERSORA MELKIM</option>
-                        <option value="MASTERCARD VENEZUELA, INC.">MASTERCARD VENEZUELA, INC.</option>
-                        <option value="OTAOLA INGENIERIA C.A.">OTAOLA INGENIERIA C.A.</option>
-                        <option value="OXICORP, C.A.">OXICORP, C.A.</option>
-                        <option value="PEPSICO (MARACAY)">PEPSICO (MARACAY)</option>
-                        <option value="PROMOTORA 204 C.A.">PROMOTORA 204 C.A.</option>
-                        <option value="PROSALMED C.A. CCCT">PROSALMED C.A. CCCT</option>
-                        <option value="PROSALMED C.A. SBG">PROSALMED C.A. SBG</option>
-                        <option value="PROSALMED C.A. SEDE PRINCIPAL">PROSALMED C.A. SEDE PRINCIPAL</option>
-                        <option value="SNACKS (MARACAIBO)">SNACKS (MARACAIBO)</option>
-                        <option value="SNACKS (MARACAY)">SNACKS (MARACAY)</option>
-                        <option value="SNACKS (PTO ORDAZ)">SNACKS (PTO ORDAZ)</option>
-                        <option value="SNACKS (VALENCIA)">SNACKS (VALENCIA)</option>
-                        <option value="TELEFONICA">TELEFONICA</option>
-                        <option value="VAN DER IMPORT, C.A">VAN DER IMPORT, C.A</option>
-                        <option value="OTRO">OTRO</option>
-                    </select>
-                </div>
+    <!-- Modal de Edición de Informe -->
+    <div id="editReportModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center">
+                 <h3 class="text-xl font-semibold">Editar Informe Antes de Descargar</h3>
+                 <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            </div>
+            <div id="editableReportContent" class="p-6 overflow-y-auto" contenteditable="true" style="min-height: 400px; border: 1px solid #ddd;"></div>
+            <div class="p-4 border-t bg-gray-50 flex justify-end gap-4">
+                <button id="cancelEditBtn" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-full">Cancelar</button>
+                <button id="saveAndDownloadBtn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full">Guardar y Descargar</button>
+            </div>
+        </div>
+    </div>
 
-                <!-- Hora Inicio -->
-                <div>
-                    <label for="startTime" class="block text-gray-700 text-sm font-semibold mb-2">Hora Inicio:</label>
-                    <input type="time" id="startTime" name="startTime"
-                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
-                </div>
-
-                <!-- Hora Fin -->
-                <div>
-                    <label for="endTime" class="block text-gray-700 text-sm font-semibold mb-2">Hora Fin:</label>
-                    <input type="time" id="endTime" name="endTime"
-                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
-                </div>
-
-                <!-- Display de Tiempo Transcurrido -->
-                <div class="md:col-span-2 text-center mt-2 p-3 bg-blue-50 rounded-lg text-blue-800 font-bold text-lg">
-                    <span id="elapsedTimeDisplay">Tiempo Transcurrido: --</span>
-                </div>
-
-                <!-- Actividades -->
-                <div class="md:col-span-2">
-                    <label for="activities" class="block text-gray-700 text-sm font-semibold mb-2">Actividades Realizadas:</label>
-                    <div id="activityButtons" class="flex flex-wrap gap-2 mb-2">
-                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Inspección de campo</button>
-                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Reunión de seguridad</button>
-                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Capacitación de personal</button>
-                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Recorrido por instalaciones</button>
-                        <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Verificación de EPP</button>
-                    </div>
-                    <textarea id="activities" name="activities" rows="5"
-                              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-                              placeholder="Describe las actividades realizadas, o usa los botones de arriba."></textarea>
-                </div>
-
-                <!-- Observaciones -->
-                <div class="md:col-span-2">
-                    <label for="observations" class="block text-gray-700 text-sm font-semibold mb-2">Observaciones:</label>
-                    <div id="observationButtons" class="flex flex-wrap gap-2 mb-2">
-                         <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Jornada sin novedad</button>
-                         <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Se observó buen uso de EPP</button>
-                         <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Se requiere seguimiento a...</button>
-                         <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Personal colaboró con las medidas</button>
-                    </div>
-                    <textarea id="observations" name="observations" rows="3"
-                              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-                              placeholder="Añade cualquier observación relevante, o usa los botones de arriba."></textarea>
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="md:col-span-2 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-6">
-                    <button type="button" id="generateWhatsAppBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                        <span class="text-xl">📲</span>
-                        Enviar a WhatsApp
-                    </button>
-                    <button type="button" id="copyReportBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        <span class="text-xl">📋</span>
-                        Copiar Reporte
-                    </button>
-                    <button type="button" id="addToCalendarBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
-                        <span class="text-xl">🗓️</span>
-                        Agendar
-                    </button>
-                    <button type="button" id="clearFormBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                        <span class="text-xl">🗑️</span>
-                        Limpiar Formulario
-                    </button>
-                </div>
-            </form>
-        </section>
-    </main>
-
-    <!-- Pie de página -->
-    <footer class="w-full max-w-4xl text-center text-gray-300 text-sm mt-8">
-        © Derechos Reservados Sha-Prosalmed.
+    <footer class="text-center text-gray-300 text-sm mt-8 pb-4">
+        &copy; 2025 Derechos Reservados Sha-Prosalmed
     </footer>
 
-    <script>
-        (function() {
-            // --- CONSTANTES Y ELEMENTOS DEL DOM ---
-            const form = document.getElementById('reportForm');
-            const messageBox = document.getElementById('messageBox');
-            const elapsedTimeDisplay = document.getElementById('elapsedTimeDisplay');
-            const generateWhatsAppBtn = document.getElementById('generateWhatsAppBtn');
-            const copyReportBtn = document.getElementById('copyReportBtn');
-            const clearFormBtn = document.getElementById('clearFormBtn');
-            const addToCalendarBtn = document.getElementById('addToCalendarBtn'); // Nuevo botón
-            const formInputs = {
-                reportDate: document.getElementById('reportDate'),
-                coordinator: document.getElementById('coordinator'),
-                location: document.getElementById('location'),
-                startTime: document.getElementById('startTime'),
-                endTime: document.getElementById('endTime'),
-                activities: document.getElementById('activities'),
-                observations: document.getElementById('observations'),
-            };
-            const LOCAL_STORAGE_KEY = 'prosalmedShaReportData';
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, addDoc, collection, query, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            // --- FUNCIONES AUXILIARES ---
+        // --- NEW FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBs3bNWa_omjW0kecM1fwchPZNqPVfOL28",
+            authDomain: "reporte-sha-base-sup.firebaseapp.com",
+            projectId: "reporte-sha-base-sup",
+            storageBucket: "reporte-sha-base-sup.appspot.com",
+            messagingSenderId: "46767598600",
+            appId: "1:46767598600:web:d70cf029c42718a94575bd",
+            measurementId: "G-J09J1FPHR9"
+        };
+        
+        // --- GLOBAL VARIABLES & STATE ---
+        let app, db, auth;
+        let userId = null;
+        let allReports = [];
+        let filteredReports = [];
+        const SUPERVISOR_KEY = 'sha2025';
+        let unsubscribeReports = null; // To manage listener subscription
 
-            function displayMessage(message, type) {
-                messageBox.textContent = message;
-                messageBox.className = 'p-3 rounded-lg mb-6 text-center font-medium';
-                const typeClasses = {
-                    success: 'bg-green-100 text-green-800',
-                    error: 'bg-red-100 text-red-800',
-                    info: 'bg-blue-100 text-blue-800'
-                };
-                messageBox.classList.remove('hidden');
-                messageBox.classList.add(...(typeClasses[type] || typeClasses.info).split(' '));
-                setTimeout(() => {
-                    messageBox.classList.add('hidden');
-                }, 5000);
+        // --- UI HELPER FUNCTIONS ---
+        function showMessage(message, type = 'info', duration = 4000) {
+            const box = document.getElementById('message-box');
+            box.textContent = message;
+            box.className = 'message-box p-4 rounded-lg shadow-xl text-white font-semibold';
+            const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-blue-500' };
+            box.classList.add(colors[type], 'show');
+            setTimeout(() => box.classList.remove('show'), duration);
+        }
+
+        function showSpinner(show) {
+            document.getElementById('globalSpinner').classList.toggle('hidden', !show);
+        }
+
+        function switchTab(targetTab) {
+            const tabs = ['registro', 'supervisor'];
+            tabs.forEach(tab => {
+                document.getElementById(`tab-${tab}`).classList.remove('active');
+                document.getElementById(`content-${tab}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${targetTab}`).classList.add('active');
+            document.getElementById(`content-${targetTab}`).classList.remove('hidden');
+        }
+
+        // --- DATE & TIME FUNCTIONS ---
+        function calculateElapsedTime(start, end) {
+            if (!start || !end) return '--';
+            const diffMs = new Date(`1970-01-01T${end}:00`) - new Date(`1970-01-01T${start}:00`);
+            const diffMinutes = Math.round(diffMs / 60000);
+            if (diffMinutes < 0) return 'Horas inválidas';
+            const hours = Math.floor(diffMinutes / 60);
+            const minutes = diffMinutes % 60;
+            return `${hours} horas ${minutes} minutos`;
+        }
+        
+        function formatGoogleCalendarDate(dateObj) {
+            return dateObj.toISOString().replace(/-|:|\.\d{3}/g, '');
+        }
+
+        function formatMinutesToHours(minutes) {
+            if (isNaN(minutes)) return "0h 0m";
+            const hours = Math.floor(minutes / 60);
+            const mins = Math.round(minutes % 60);
+            return `${hours}h ${mins}m`;
+        }
+        
+        function formatMinutesToLongHours(totalMinutes) {
+            if (isNaN(totalMinutes)) return "0 horas 0 minutos";
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.round(totalMinutes % 60);
+            return `${hours} horas ${minutes} minutos`;
+        }
+
+        // --- FIREBASE & DATA HANDLING ---
+        async function initializeFirebase() {
+            if (!Object.keys(firebaseConfig).length) {
+                return showMessage('Error de configuración de Firebase.', 'error');
             }
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
 
-            function calculateElapsedTime(startTimeStr, endTimeStr) {
-                if (!startTimeStr || !endTimeStr) return '--';
-                const [startHour, startMinute] = startTimeStr.split(':').map(Number);
-                const [endHour, endMinute] = endTimeStr.split(':').map(Number);
-                const startDate = new Date(2000, 0, 1, startHour, startMinute);
-                let endDate = new Date(2000, 0, 1, endHour, endMinute);
-                if (endDate < startDate) {
-                    endDate.setDate(endDate.getDate() + 1);
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    setupReportsListener();
+                } else {
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (e) {
+                        console.error("Auth Error:", e);
+                        showMessage('Error de autenticación.', 'error');
+                    }
                 }
-                const diffMs = endDate.getTime() - startDate.getTime();
-                const diffMinutes = Math.round(diffMs / (1000 * 60));
-                const hours = Math.floor(diffMinutes / 60);
-                const minutes = diffMinutes % 60;
-                return `${hours} horas ${minutes} minutos`;
+            });
+        }
+        
+        async function saveReportToFirebase(reportData) {
+            if (!userId || !db) return showMessage('Error: No se puede conectar a la base de datos.', 'error');
+            showSpinner(true);
+            try {
+                // Simplified collection path
+                const colRef = collection(db, "shaReports");
+                await addDoc(colRef, { ...reportData, timestamp: serverTimestamp(), userId });
+                showMessage('Reporte guardado exitosamente.', 'success');
+                document.getElementById('reportForm').reset();
+                setDefaults();
+            } catch (error) {
+                console.error("Error saving report:", error);
+                if (error.code === 'permission-denied') {
+                    showMessage('Error de permisos. No se pudo guardar el reporte. Revise las reglas de seguridad de Firestore.', 'error');
+                } else {
+                    showMessage('Error al guardar el reporte.', 'error');
+                }
+            } finally {
+                showSpinner(false);
             }
+        }
 
-            function formatTime(time) {
-                if (!time) return '';
-                const [h, m] = time.split(':');
-                const hour = parseInt(h, 10);
-                const period = hour >= 12 ? 'PM' : 'AM';
-                const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
-                return `${String(formattedHour).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
+        function setupReportsListener() {
+            if (unsubscribeReports) {
+                unsubscribeReports(); // Prevent multiple listeners
             }
+             // Simplified collection path
+            const q = query(collection(db, "shaReports"));
+            unsubscribeReports = onSnapshot(q, (snapshot) => {
+                allReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                allReports.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+                populateFilterDropdowns();
+                applyFilters();
+            }, (error) => {
+                console.error("Error listening to reports:", error);
+                if (error.code === 'permission-denied') {
+                    showMessage('Error de permisos. No se pueden cargar los reportes. Revise las reglas de seguridad de Firestore.', 'error');
+                } else {
+                     showMessage('Error al cargar los reportes.', 'error');
+                }
+            });
+        }
 
-            function formatGoogleCalendarDate(dateObj) {
-                return dateObj.toISOString().replace(/-|:|\.\d{3}/g, '');
-            }
-            
-            function generateWhatsAppReport(reportData) {
-                return `
-*REPORTE JORNADA SHA* ✅
----
-🗓️ *FECHA:* ${reportData.reportDate}
-⏰ *HORARIO:* ${reportData.startTime} - ${reportData.endTime}
-⏳ *TIEMPO TRANSCURRIDO:* ${reportData.elapsedTime}
-🧑‍💼 *RESPONSABLE SHA:* ${reportData.coordinator}
-📍 *CLIENTE:* ${reportData.location}
----
-*ACTIVIDADES REALIZADAS:* 📋
-${reportData.activities}
----
-*OBSERVACIONES:* 👁️
-${reportData.observations}
----
-¡Excelente jornada! 👍
-                `.trim();
-            }
+        // --- REGISTRO TAB LOGIC ---
+        function getFormData() {
+            // Clear previous error styles first
+            document.querySelectorAll('#reportForm .border-red-500').forEach(el => {
+                el.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+                el.classList.add('border-gray-300');
+            });
 
-            // --- LÓGICA DE LA APLICACIÓN ---
+            const fields = [
+                { el: document.getElementById('reportDate'), name: 'Fecha' },
+                { el: document.getElementById('coordinator'), name: 'Responsable SHA' },
+                { el: document.getElementById('location'), name: 'Cliente' },
+                { el: document.getElementById('startTime'), name: 'Hora Inicio' },
+                { el: document.getElementById('endTime'), name: 'Hora Fin' },
+                { el: document.getElementById('activities'), name: 'Actividades Realizadas' }
+            ];
 
-            function getFormData() {
-                const data = {
-                    reportDate: formInputs.reportDate.value,
-                    coordinator: formInputs.coordinator.value.trim(),
-                    location: formInputs.location.value,
-                    startTime: formInputs.startTime.value,
-                    endTime: formInputs.endTime.value,
-                    activities: formInputs.activities.value.trim(),
-                    observations: formInputs.observations.value.trim(),
-                };
-
-                const requiredFields = ['reportDate', 'location', 'startTime', 'endTime', 'activities', 'observations', 'coordinator'];
-                const missingField = requiredFields.find(field => !data[field]);
-                if (missingField) {
-                    displayMessage('Por favor, completa todos los campos requeridos.', 'error');
-                    formInputs[missingField].focus();
+            for (const field of fields) {
+                if (!field.el.value) {
+                    showMessage(`El campo "${field.name}" es obligatorio.`, 'error');
+                    field.el.classList.remove('border-gray-300');
+                    field.el.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+                    field.el.focus();
                     return null;
                 }
-
-                data.elapsedTime = calculateElapsedTime(data.startTime, data.endTime);
-                return data;
             }
 
-            function updateElapsedTimeDisplay() {
-                const startTime = formInputs.startTime.value;
-                const endTime = formInputs.endTime.value;
-                elapsedTimeDisplay.textContent = `Tiempo Transcurrido: ${calculateElapsedTime(startTime, endTime)}`;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const elapsedTime = calculateElapsedTime(startTime, endTime);
+            
+            if (elapsedTime === 'Horas inválidas') {
+                showMessage('La hora de fin no puede ser anterior a la hora de inicio.', 'error');
+                const endTimeEl = document.getElementById('endTime');
+                endTimeEl.classList.remove('border-gray-300');
+                endTimeEl.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+                endTimeEl.focus();
+                return null;
             }
+            
+            const data = {
+                reportDate: document.getElementById('reportDate').value,
+                coordinator: document.getElementById('coordinator').value,
+                location: document.getElementById('location').value,
+                startTime: startTime,
+                endTime: endTime,
+                activities: document.getElementById('activities').value.trim(),
+                observations: document.getElementById('observations').value.trim(),
+                elapsedTime: elapsedTime,
+            };
+            
+            const diffMs = new Date(`1970-01-01T${endTime}:00`) - new Date(`1970-01-01T${startTime}:00`);
+            data.elapsedMinutes = Math.max(0, diffMs / 60000);
+            return data;
+        }
 
-            function saveFormToLocalStorage() {
-                const data = {
-                    reportDate: formInputs.reportDate.value,
-                    coordinator: formInputs.coordinator.value,
-                    location: formInputs.location.value,
-                    startTime: formInputs.startTime.value,
-                    endTime: formInputs.endTime.value,
-                    activities: formInputs.activities.value,
-                    observations: formInputs.observations.value,
-                };
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+
+        function setDefaults() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('reportDate').value = today;
+            document.getElementById('elapsedTimeDisplay').textContent = `Tiempo Transcurrido: --`;
+        }
+
+        // --- SUPERVISOR TAB LOGIC ---
+        function populateFilterDropdowns() {
+            const coordinatorFilter = document.getElementById('coordinatorFilter');
+            const locationFilter = document.getElementById('locationFilter');
+            const uniqueCoordinators = [...new Set(allReports.map(r => r.coordinator).filter(Boolean))].sort();
+            const uniqueLocations = [...new Set(allReports.map(r => r.location).filter(Boolean))].sort();
+            
+            coordinatorFilter.innerHTML = '<option value="">Todos los Responsables</option>' + uniqueCoordinators.map(c => `<option value="${c}">${c}</option>`).join('');
+            locationFilter.innerHTML = '<option value="">Todos los Clientes</option>' + uniqueLocations.map(l => `<option value="${l}">${l}</option>`).join('');
+        }
+
+        function applyFilters() {
+            const coordinator = document.getElementById('coordinatorFilter').value;
+            const location = document.getElementById('locationFilter').value;
+            filteredReports = allReports.filter(r => 
+                (!coordinator || r.coordinator === coordinator) &&
+                (!location || r.location === location)
+            );
+            displayPastReports(filteredReports);
+            generateAnalytics(filteredReports);
+        }
+        
+        function displayPastReports(reports) {
+            const list = document.getElementById('pastParsedReportsList');
+            if (reports.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-500">No hay reportes que coincidan.</p>';
+                return;
             }
+            list.innerHTML = reports.map((r, i) => `
+                <div class="bg-gray-50 p-3 rounded-lg shadow-sm border fade-in-slide-up" style="animation-delay: ${i * 0.05}s;">
+                    <p class="font-semibold text-gray-700">🗓️ ${r.reportDate || 'N/A'}</p>
+                    <p class="text-sm">🧑‍💼 Responsable: ${r.coordinator || 'N/A'}</p>
+                    <p class="text-sm">📍 Cliente: ${r.location || 'N/A'}</p>
+                    <p class="text-sm">⏳ Tiempo: <span class="font-medium text-blue-600">${r.elapsedTime || 'N/A'}</span></p>
+                </div>
+            `).join('');
+        }
 
-            function loadFormFromLocalStorage() {
-                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (savedData) {
-                    try {
-                        const data = JSON.parse(savedData);
-                        Object.keys(data).forEach(key => {
-                            if (formInputs[key]) {
-                                formInputs[key].value = data[key];
-                            }
-                        });
-                        return true;
-                    } catch (e) {
-                        console.error('Error al parsear datos de localStorage:', e);
-                        localStorage.removeItem(LOCAL_STORAGE_KEY);
-                        return false;
+        function generateAnalytics(reports) {
+            const section = document.getElementById('analyticsSection');
+            if (reports.length === 0) return section.classList.add('hidden');
+            section.classList.remove('hidden');
+
+            const totalMinutes = d3.sum(reports, d => d.elapsedMinutes || 0);
+            const locationData = d3.rollups(reports, v => d3.sum(v, d => d.elapsedMinutes || 0), d => d.location)
+                .map(([name, val]) => ({ name, value: val })).sort((a,b) => b.value - a.value);
+            renderBarChart('#clientTimeChart', locationData, 'Distribución por Cliente', totalMinutes);
+            
+            const coordinatorData = d3.rollups(reports, v => d3.sum(v, d => d.elapsedMinutes || 0), d => d.coordinator)
+                .map(([name, val]) => ({ name, value: val })).sort((a,b) => b.value - a.value);
+            renderBarChart('#coordinatorTimeChart', coordinatorData, 'Distribución por Responsable', totalMinutes);
+        }
+
+        function renderBarChart(selector, data, title, totalValue) {
+            const container = d3.select(selector);
+            container.select('svg').remove();
+            const margin = {top: 40, right: 20, bottom: 80, left: 60},
+                  width = container.node().offsetWidth - margin.left - margin.right,
+                  height = 280 - margin.top - margin.bottom;
+
+            const svg = container.append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+            
+            const x = d3.scaleBand().range([0, width]).domain(data.map(d => d.name)).padding(0.2);
+            svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x))
+                .selectAll("text").attr("transform", "translate(-10,0)rotate(-45)").style("text-anchor", "end");
+            
+            const y = d3.scaleLinear().domain([0, d3.max(data, d => d.value) || 1]).range([height, 0]);
+            svg.append("g").call(d3.axisLeft(y).tickFormat(d => formatMinutesToHours(d)));
+            
+            svg.selectAll("rect").data(data).enter().append("rect")
+                .attr("x", d => x(d.name)).attr("width", x.bandwidth()).attr("fill", "#6366F1")
+                .attr("y", height).attr("height", 0)
+                .transition().duration(700).delay((d,i) => i*50)
+                .attr("y", d => y(d.value)).attr("height", d => height - y(d.value));
+
+            svg.append("text").attr("x", width/2).attr("y", -20).attr("text-anchor", "middle").style("font-size", "1rem").style("font-weight", "600").text(title);
+        }
+        
+        function generateDetailedReport() {
+            const container = document.getElementById('reportContainer');
+            if (filteredReports.length === 0) {
+                return showMessage('No hay datos para generar un informe. Por favor, ajuste los filtros.', 'info');
+            }
+            
+            const reports = [...filteredReports].sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
+            const totalMinutes = d3.sum(reports, d => d.elapsedMinutes || 0);
+            
+            const coordinatorFilter = document.getElementById('coordinatorFilter');
+            const locationFilter = document.getElementById('locationFilter');
+            
+            const responsable = coordinatorFilter.value ? coordinatorFilter.options[coordinatorFilter.selectedIndex].text : "Todos los responsables";
+            const cliente = locationFilter.value ? locationFilter.options[locationFilter.selectedIndex].text : "Todos los clientes";
+
+            // --- HUMANIZED REPORT GENERATION ---
+            
+            const getPeriodText = () => {
+                if (reports.length < 2) return "el último período";
+                const firstDate = new Date(reports[0].reportDate);
+                const lastDate = new Date(reports[reports.length - 1].reportDate);
+                const diffDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+                if (diffDays >= 28 && diffDays <= 31) return "este último mes";
+                if (diffDays >= 6 && diffDays <= 8) return "esta última semana";
+                return "este último período";
+            };
+
+            const intro = `<p>Durante ${getPeriodText()}, dedicamos un total de <strong>${formatMinutesToLongHours(totalMinutes)}</strong> de servicio a fortalecer la gestión de Seguridad y Salud Laboral (SSL) en las instalaciones de <strong>${cliente}</strong>. A continuación, te presento un resumen de los logros más importantes y los próximos pasos a seguir.</p>`;
+
+            // Categorize activities
+            const categories = {
+                inpsasel: { title: "Puesta al día con INPSASEL", keywords: ["inpsasel", "geresat", "delegados", "registro de la entidad"], reports: [] },
+                committee: { title: "Planificación y Estrategia con el Comité de SSL", keywords: ["comite", "reunión", "reunion", "planifica", "actualizacion", "rutagrama", "notificación de riesgo"], reports: [] },
+                fieldwork: { title: "Acciones y Formación en Campo", keywords: ["evaluación", "evaluacion", "capacitación", "capacitacion", "taller", "informe", "doctora", "ponente", "inspección", "inspeccion", "recorrido"], reports: [] },
+                other: { title: "Otras Actividades de Gestión", keywords: [], reports: [] }
+            };
+
+            reports.forEach(report => {
+                const activityText = report.activities.toLowerCase();
+                let categorized = false;
+                for (const key in categories) {
+                    if (key !== 'other' && categories[key].keywords.some(kw => activityText.includes(kw))) {
+                        categories[key].reports.push(`<li>${report.activities.replace(/\n/g, '<br>')}</li>`);
+                        categorized = true;
+                        break; 
                     }
                 }
-                return false;
+                if (!categorized) {
+                    categories.other.reports.push(`<li>${report.activities.replace(/\n/g, '<br>')}</li>`);
+                }
+            });
+
+            let activityHtml = "";
+            for (const key in categories) {
+                if (categories[key].reports.length > 0) {
+                    activityHtml += `<h2>${categories[key].title}</h2><ul>${[...new Set(categories[key].reports)].join('')}</ul>`;
+                }
             }
 
-            function setDefaults() {
-                form.reset();
-                const today = new Date();
-                const year = today.getFullYear();
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const day = String(today.getDate()).padStart(2, '0');
-                formInputs.reportDate.value = `${year}-${month}-${day}`;
-                updateElapsedTimeDisplay();
-                saveFormToLocalStorage();
-            }
+            // Recommendations
+            const recommendations = `<h2>Próximos Pasos y Recomendaciones</h2>
+                <p>Hemos logrado avances significativos, especialmente en la organización documental y la planificación estratégica. Para mantener este impulso, nuestro foco estará en:</p>
+                <ul>
+                    <li><strong>Ejecutar lo planificado:</strong> Concretar la actualización de los formatos de Rutagrama y Notificación de Riesgo.</li>
+                    <li><strong>Continuar las evaluaciones:</strong> Seguir analizando puestos y áreas de trabajo para identificar y controlar cualquier nuevo riesgo.</li>
+                    <li><strong>Mantener la constancia:</strong> Realizar las inspecciones programadas y continuar con las reuniones mensuales del Comité de SSL, asegurando la entrega puntual de la documentación en INPSASEL.</li>
+                     <li><strong>Registrar el Servicio de SSL:</strong> Avanzar con el registro formal del Servicio de Seguridad y Salud en el Trabajo.</li>
+                </ul>`;
 
-            // --- INICIALIZACIÓN Y MANEJADORES DE EVENTOS ---
+            const finalReportHTML = `<div class="report-content">${intro}${activityHtml}${recommendations}</div>`;
+            
+            container.innerHTML = `
+                <div class="fade-in-slide-up border rounded-lg p-6 bg-gray-50">
+                    ${finalReportHTML}
+                    <div class="mt-8 pt-6 border-t text-center print-hidden">
+                        <button id="downloadWordBtn" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition">Descargar Informe en Word</button>
+                    </div>
+                </div>`;
+            
+            document.getElementById('downloadWordBtn').addEventListener('click', () => {
+                document.getElementById('editableReportContent').innerHTML = finalReportHTML;
+                document.getElementById('editReportModal').classList.remove('hidden');
+            });
+        }
+        
+        // --- EVENT LISTENERS & INITIALIZATION ---
+        window.onload = function() {
+            initializeFirebase();
+            setDefaults();
 
-            function initialize() {
-                if (!loadFormFromLocalStorage()) {
+            // Tab switching
+            document.getElementById('tab-registro').addEventListener('click', () => switchTab('registro'));
+            document.getElementById('tab-supervisor').addEventListener('click', () => switchTab('supervisor'));
+
+            // Registro Tab listeners
+            const form = document.getElementById('reportForm');
+            form.addEventListener('input', (e) => {
+                const start = document.getElementById('startTime').value;
+                const end = document.getElementById('endTime').value;
+                document.getElementById('elapsedTimeDisplay').textContent = `Tiempo Transcurrido: ${calculateElapsedTime(start, end)}`;
+                
+                // Clear error style on input
+                if (e.target.classList.contains('border-red-500')) {
+                    e.target.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+                    e.target.classList.add('border-gray-300');
+                }
+            });
+            document.getElementById('saveReportBtn').addEventListener('click', () => {
+                const data = getFormData();
+                if (data) saveReportToFirebase(data);
+            });
+            document.getElementById('generateWhatsAppBtn').addEventListener('click', () => {
+                const data = getFormData();
+                if (!data) return;
+                const text = `*REPORTE JORNADA SHA* ✅\n🗓️ *FECHA:* ${data.reportDate}\n⏰ *HORARIO:* ${data.startTime} - ${data.endTime}\n⏳ *TIEMPO:* ${data.elapsedTime}\n🧑‍💼 *RESPONSABLE:* ${data.coordinator}\n📍 *CLIENTE:* ${data.location}\n---\n*ACTIVIDADES:* 📋\n${data.activities}\n---\n*OBSERVACIONES:* 👁️\n${data.observations}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            });
+
+             document.getElementById('addToCalendarBtn')?.addEventListener('click', function() {
+                const reportData = getFormData();
+                if (!reportData) return;
+
+                const startDate = new Date(`${reportData.reportDate}T${reportData.startTime}`);
+                const endDate = new Date(`${reportData.reportDate}T${reportData.endTime}`);
+
+                if (isNaN(startDate) || isNaN(endDate)) {
+                    return showMessage('Fecha u hora inválida para agendar.', 'error');
+                }
+
+                const title = `Jornada SHA: ${reportData.location} - ${reportData.coordinator}`;
+                const details = `*ACTIVIDADES REALIZADAS:*\n${reportData.activities}\n\n*OBSERVACIONES:*\n${reportData.observations}`;
+                
+                const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatGoogleCalendarDate(startDate)}/${formatGoogleCalendarDate(endDate)}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(reportData.location)}`;
+                
+                window.open(calendarUrl, '_blank');
+            });
+
+            document.getElementById('clearFormBtn').addEventListener('click', () => {
+                if (confirm('¿Limpiar el formulario?')) {
+                    form.reset();
                     setDefaults();
                 }
-                updateElapsedTimeDisplay();
-
-                form.addEventListener('input', saveFormToLocalStorage);
-                formInputs.startTime.addEventListener('input', updateElapsedTimeDisplay);
-                formInputs.endTime.addEventListener('input', updateElapsedTimeDisplay);
-                
-                document.querySelectorAll('.activity-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const textarea = formInputs.activities;
-                        const newText = `- ${button.textContent.trim()}`;
-                        textarea.value = textarea.value.trim() === '' ? newText : `${textarea.value.trim()}\n${newText}`;
-                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                    });
+            });
+            
+            document.querySelectorAll('.activity-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const textarea = document.getElementById('activities');
+                    const newText = `- ${button.textContent.trim()}`;
+                    textarea.value = textarea.value.trim() === '' ? newText : `${textarea.value.trim()}\n${newText}`;
                 });
+            });
 
-                document.querySelectorAll('.observation-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const textarea = formInputs.observations;
-                        const newText = button.textContent.trim();
-                        textarea.value = textarea.value.trim() === '' ? newText : `${textarea.value.trim()}\n${newText}`;
-                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                    });
+            document.querySelectorAll('.observation-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const textarea = document.getElementById('observations');
+                    const newText = button.textContent.trim();
+                    textarea.value = textarea.value.trim() === '' ? newText : `${textarea.value.trim()}\n${newText}`;
                 });
+            });
 
-                generateWhatsAppBtn.addEventListener('click', function() {
-                    const reportData = getFormData();
-                    if (!reportData) return;
-                    const formattedData = { ...reportData,
-                        startTime: formatTime(reportData.startTime),
-                        endTime: formatTime(reportData.endTime)
-                    };
-                    const whatsappText = generateWhatsAppReport(formattedData);
-                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
-                    window.open(whatsappUrl, '_blank');
-                    displayMessage('Reporte generado. Revisa tu aplicación de WhatsApp. 🎉', 'success');
-                });
 
-                copyReportBtn.addEventListener('click', function() {
-                    const reportData = getFormData();
-                    if (!reportData) return;
-                    const formattedData = { ...reportData,
-                        startTime: formatTime(reportData.startTime),
-                        endTime: formatTime(reportData.endTime)
-                    };
-                    const reportText = generateWhatsAppReport(formattedData);
-                    
-                    const textArea = document.createElement("textarea");
-                    textArea.value = reportText;
-                    textArea.style.position = "fixed"; 
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        displayMessage('Reporte copiado al portapapeles. ¡Listo para pegar! 📋', 'success');
-                    } catch (err) {
-                        console.error('Fallback: Error al copiar:', err);
-                        displayMessage('No se pudo copiar el reporte.', 'error');
-                    }
-                    document.body.removeChild(textArea);
-                });
-
-                addToCalendarBtn.addEventListener('click', function() {
-                    const reportData = getFormData();
-                    if (!reportData) return;
-
-                    const startDate = new Date(`${reportData.reportDate}T${reportData.startTime}`);
-                    const endDate = new Date(`${reportData.reportDate}T${reportData.endTime}`);
-
-                    const title = `Jornada SHA: ${reportData.location} - ${reportData.coordinator}`;
-                    const details = `*ACTIVIDADES REALIZADAS:*\n${reportData.activities}\n\n*OBSERVACIONES:*\n${reportData.observations}`;
-                    
-                    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatGoogleCalendarDate(startDate)}/${formatGoogleCalendarDate(endDate)}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(reportData.location)}`;
-                    
-                    window.open(calendarUrl, '_blank');
-                    displayMessage('Abriendo Google Calendar para agendar el evento...', 'info');
-                });
-
-                clearFormBtn.addEventListener('click', function() {
-                    if (confirm('¿Estás seguro de que quieres limpiar todos los campos del formulario?')) {
-                        localStorage.removeItem(LOCAL_STORAGE_KEY);
-                        setDefaults();
-                        displayMessage('Formulario limpiado y listo para un nuevo registro.', 'info');
-                    }
-                });
-            }
-
-            initialize();
-        })();
+            // Supervisor Tab listeners
+            document.getElementById('login-button').addEventListener('click', () => {
+                if (document.getElementById('supervisor-key').value === SUPERVISOR_KEY) {
+                    document.getElementById('supervisor-login').classList.add('hidden');
+                    document.getElementById('supervisor-dashboard').classList.remove('hidden');
+                } else {
+                    showMessage('Clave incorrecta.', 'error');
+                }
+            });
+            document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+            document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+                document.getElementById('coordinatorFilter').value = '';
+                document.getElementById('locationFilter').value = '';
+                applyFilters();
+                document.getElementById('reportContainer').innerHTML = ''; // Limpiar informe
+            });
+            document.getElementById('generateReportBtn').addEventListener('click', generateDetailedReport);
+            
+            // Modal listeners
+            const modal = document.getElementById('editReportModal');
+            document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
+            document.getElementById('cancelEditBtn').addEventListener('click', () => modal.classList.add('hidden'));
+            document.getElementById('saveAndDownloadBtn').addEventListener('click', async () => {
+                showSpinner(true);
+                const content = document.getElementById('editableReportContent').innerHTML;
+                 const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+                    "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+                    "xmlns='http://www.w3.org/TR/REC-html40'>"+
+                    "<head><meta charset='utf-8'><title>Export HTML to Word Document</title></head><body>";
+                const footer = "</body></html>";
+                const sourceHTML = header+content+footer;
+                const fileBuffer = await window.htmlToDocx.asBlob(sourceHTML);
+                window.saveAs(fileBuffer, 'informe_sha_generado.docx');
+                showSpinner(false);
+                modal.classList.add('hidden');
+            });
+        };
     </script>
 </body>
 </html>
-
 
