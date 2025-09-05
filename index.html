@@ -516,12 +516,21 @@
             showSpinner(true);
             const q = query(collection(db, "shaReports"));
             unsubscribeReports = onSnapshot(q, (snapshot) => {
-                allReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                allReports.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
-                populateFilterDropdowns();
-                applyFilters();
-                showSpinner(false);
+                // This block runs when data is successfully fetched or updated.
+                try {
+                    allReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    allReports.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+                    populateFilterDropdowns();
+                    applyFilters();
+                } catch (e) {
+                    console.error("Error processing snapshot:", e);
+                    showMessage("Error al procesar los datos de los reportes.", "error");
+                } finally {
+                    // CRITICAL: Ensure spinner is hidden after processing, even if errors occur.
+                    showSpinner(false);
+                }
             }, (error) => {
+                // This block runs if the listener itself fails (e.g., permissions).
                 console.error("Error listening to reports:", error);
                 if (error.code === 'permission-denied') {
                     showMessage('Error de permisos. No se pueden cargar los reportes. Revise las reglas de seguridad de Firestore.', 'error');
@@ -877,3 +886,4 @@
     </script>
 </body>
 </html>
+
