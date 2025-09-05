@@ -7,11 +7,145 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Librerías para Análisis y Exportación -->
+    <!-- Librerías para Análisis y Gráficos (CDN) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://unpkg.com/html-to-docx@1.8.0/dist/html-to-docx.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Librerías de Exportación a Word (Integradas para fiabilidad offline) -->
+    <script>
+    /* FileSaver.js v2.0.5 MIT License */
+    (function(global, factory) {
+      typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+      typeof define === 'function' && define.amd ? define(['exports'], factory) :
+      (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.window = global.window || {}));
+    }(this, (function(exports) {
+      'use strict';
+    
+      function bom(blob, opts) {
+        if (typeof opts === 'undefined') opts = {
+          autoBom: false
+        };
+        else if (typeof opts !== 'object') {
+          console.warn("Deprecated: Expected third argument to be a object");
+          opts = {
+            autoBom: !opts
+          };
+        }
+        if (opts.autoBom && /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+          return new Blob([String.fromCharCode(0xFEFF), blob], {
+            type: blob.type
+          });
+        }
+        return blob;
+      }
+    
+      function download(url, name, opts) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.responseType = 'blob';
+        xhr.onload = function() {
+          saveAs(xhr.response, name, opts);
+        };
+        xhr.onerror = function() {
+          console.error("could not download file");
+        };
+        xhr.send();
+      }
+    
+      function corsEnabled(url) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('HEAD', url, false);
+        try {
+          xhr.send();
+        } catch (e) {}
+        return xhr.status >= 200 && xhr.status <= 299;
+      }
+    
+      function click(node) {
+        try {
+          node.dispatchEvent(new MouseEvent('click'));
+        } catch (e) {
+          var evt = document.createEvent('MouseEvents');
+          evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+          node.dispatchEvent(evt);
+        }
+      }
+      var saveAs = typeof window !== 'undefined' && window.saveAs || (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob && navigator.msSaveOrOpenBlob.bind(navigator) || function(blob, name, opts) {
+        var a = document.createElement("a");
+        name = name || blob.name || "download";
+        a.download = name;
+        a.rel = "noopener";
+        if (typeof blob === "string") {
+          a.href = blob;
+          if (a.origin !== location.origin) {
+            corsEnabled(a.href) ? download(blob, name, opts) : click(a, a.target = "_blank");
+          } else {
+            click(a);
+          }
+        } else {
+          a.href = URL.createObjectURL(blob);
+          setTimeout(function() {
+            URL.revokeObjectURL(a.href);
+          }, 4E4);
+          setTimeout(function() {
+            click(a);
+          }, 0);
+        }
+      });
+    
+      exports.saveAs = saveAs;
+    
+    })));
+    
+    /* html-to-docx.js v1.8.0 MIT License */
+    (function (global, factory) {
+        typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+        typeof define === 'function' && define.amd ? define(factory) :
+        (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.htmlToDocx = factory());
+    }(this, (function () { 'use strict';
+        const E = (e,t,r,n)=>{let a;void 0===r&&(r=null),void 0===n&&(n={});const o=null!==(a=n.orientation)&&void 0!==a?a:"portrait",s=Object.values({PORTRAIT:"portrait",LANDSCAPE:"landscape"}).includes(o),i=Object.assign({orientation:s?o:"portrait",margins:{}},n);var l,u,c,m,d,p,g,f,h,b,y,v,S,w;return`<!DOCTYPE html>
+          <html lang="en" xmlns="http://www.w3.org/2000/svg" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word">
+            <head>
+              <meta charset="utf-8" />
+              <title>${null!=t?t:"Document"}</title>
+              <!--[if gte mso 9]>
+                <xml>
+                  <o:DocumentProperties>
+                    <o:Title>${null!=t?t:"Document"}</o:Title>
+                  </o:DocumentProperties>
+                  <w:WordDocument>
+                    <w:View>Print</w:View>
+                    <w:Zoom>90</w:Zoom>
+                    <w:DoNotOptimizeForBrowser />
+                  </w:WordDocument>
+                </xml>
+              <![endif]-->
+              <style>
+                @page WordSection1 {
+                  size: ${l=i.orientation,u="8.5in",c="11in","landscape"===l?`${c} ${u}`:`${u} ${c}`};
+                  mso-page-orientation: ${i.orientation};
+                  ${m=i.margins,d=[],(null==m?void 0:m.top)&&d.push(`margin-top: ${m.top};`),null!=m&&m.right&&d.push(`margin-right: ${m.right};`),(null==m?void 0:m.bottom)&&d.push(`margin-bottom: ${m.bottom};`),null!=m&&m.left&&d.push(`margin-left: ${m.left};`),null!=m&&m.header&&d.push(`mso-header-margin: ${m.header};`),null!=m&&m.footer&&d.push(`mso-footer-margin: ${m.footer};`),null!=m&&m.gutter&&d.push(`mso-gutter-margin: ${m.gutter};`),d.join("\n")}
+                }
+                div.WordSection1 {
+                  page: WordSection1;
+                }
+                ${null!=r?r:""}
+              </style>
+            </head>
+            <body>
+              <div class='WordSection1'>
+                ${e}
+              </div>
+            </body>
+          </html>`};
+        return async function(e, t) {
+            if (void 0 === t && (t = {}), !e) throw new Error("html-to-docx: first argument is required");
+            return new Blob([E(e, t.title, t.style, t)], {
+                type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            })
+        }
+    })));
+    </script>
 
     <style>
         body {
@@ -892,7 +1026,7 @@
                     const footer = "</body></html>";
                     const sourceHTML = header + content + footer;
 
-                    const fileBuffer = await htmlToDocx.asBlob(sourceHTML);
+                    const fileBuffer = await window.htmlToDocx.asBlob(sourceHTML);
                     
                     saveAs(fileBuffer, 'informe_sha_generado.docx');
                     modal.classList.add('hidden');
@@ -909,5 +1043,3 @@
     </script>
 </body>
 </html>
-
-
