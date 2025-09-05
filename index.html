@@ -1022,11 +1022,8 @@
 
                 try {
                     const content = document.getElementById('editableReportContent').innerHTML;
-                    const header = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>Informe</title></head><body>`;
-                    const footer = "</body></html>";
-                    const sourceHTML = header + content + footer;
-
-                    const fileBuffer = await window.htmlToDocx.asBlob(sourceHTML);
+                    
+                    const fileBuffer = await window.htmlToDocx(content);
                     
                     saveAs(fileBuffer, 'informe_sha_generado.docx');
                     modal.classList.add('hidden');
