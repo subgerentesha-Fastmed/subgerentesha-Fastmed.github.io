@@ -325,7 +325,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, addDoc, collection, query, onSnapshot, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, addDoc, collection, query, onSnapshot, serverTimestamp, doc, deleteDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBs3bNWa_omjW0kecM1fwchPZNqPVfOL28",
@@ -408,6 +408,7 @@
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
+                    await seedInitialData(); // Carga los datos iniciales si es necesario
                     setupReportsListener();
                     setupListListener('clients', populateClientDropdowns);
                     setupListListener('coordinators', populateCoordinatorDropdowns);
@@ -419,6 +420,36 @@
             });
         }
         
+        async function seedInitialData() {
+            // Seed Clients
+            const clientsRef = collection(db, 'clients');
+            const clientsSnapshot = await getDocs(clientsRef);
+            if (clientsSnapshot.empty) {
+                console.log("Seeding initial clients...");
+                const clientNames = ["A&S CONSULTORES, C.A.", "ADMINISTRADORA 302, C.A.", "ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS", "BAYER, S.A.", "CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)", "CARACAS SOUL C.A.", "CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.", "CONDOMINIO CENTRO COMERCIAL CITY MARKET", "CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.", "DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.", "DICAM SISTEMAS INTELIGENTES C.A", "EAGLEBURGMANN VENEZUELA, C.A.", "GRUPO INFOGUIANET, C.A.", "GRUPO INTEXUS C.A", "H2 FOOD SERVICE, C.A.", "IMPORTADORA BICIMOTO LTDA C.A.", "INVERSIONES OTAPE C.A.", "INVERSIONES QUIMIVECO 3, C.A", "INVERSORA MELKIM", "MASTERCARD VENEZUELA, INC.", "OTAOLA INGENIERIA C.A.", "OXICORP, C.A.", "PEPSICO (MARACAY)", "PROMOTORA 204 C.A.", "PROSALMED C.A. CCCT", "PROSALMED C.A. SBG", "PROSALMED C.A. SEDE PRINCIPAL", "SNACKS (MARACAIBO)", "SNACKS (MARACAY)", "SNACKS (PTO ORDAZ)", "SNACKS (VALENCIA)", "TELEFONICA", "VAN DER IMPORT, C.A", "OTRO"];
+                const batch = writeBatch(db);
+                clientNames.forEach(name => {
+                    const docRef = doc(clientsRef);
+                    batch.set(docRef, { name });
+                });
+                await batch.commit();
+            }
+
+            // Seed Coordinators
+            const coordinatorsRef = collection(db, 'coordinators');
+            const coordinatorsSnapshot = await getDocs(coordinatorsRef);
+            if (coordinatorsSnapshot.empty) {
+                console.log("Seeding initial coordinators...");
+                const coordinatorNames = ["Adelvy Piñango", "Arturo Gomez", "Carlos Vera", "Damiany Reyes", "Daniel García", "Darwin Gómez", "Douglas Vásquez", "Erika Piñero", "Francisco Enrique", "Gregvir Rodríguez", "Izkarlette Rodríguez", "José Cova", "Karem Doriela", "María Hernández", "Osmel Ventura", "Wilmer Peña", "Yoraco Gonzalez", "Yris Parra", "Neomar Funes"];
+                const batch = writeBatch(db);
+                coordinatorNames.forEach(name => {
+                    const docRef = doc(coordinatorsRef);
+                    batch.set(docRef, { name });
+                });
+                await batch.commit();
+            }
+        }
+
         async function saveReportToFirebase(reportData) {
             if (!userId || !db) return showMessage('Error: No se puede conectar a la base de datos.', 'error');
             showSpinner(true);
@@ -868,7 +899,11 @@
         }
 
         // Wait for the entire page to load, including all external scripts, before running the main script
-        window.addEventListener('load', main);
+        if (document.readyState === 'loading') {
+            window.addEventListener('load', main);
+        } else {
+            main();
+        }
         
     </script>
 </body>
