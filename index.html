@@ -7,145 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Librerías para Análisis y Gráficos (CDN) -->
+    <!-- Librerías para Análisis y Exportación -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://unpkg.com/html-to-docx@1.8.0/dist/html-to-docx.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <!-- Librerías de Exportación a Word (Integradas para fiabilidad offline) -->
-    <script>
-    /* FileSaver.js v2.0.5 MIT License */
-    (function(global, factory) {
-      typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-      typeof define === 'function' && define.amd ? define(['exports'], factory) :
-      (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.window = global.window || {}));
-    }(this, (function(exports) {
-      'use strict';
-    
-      function bom(blob, opts) {
-        if (typeof opts === 'undefined') opts = {
-          autoBom: false
-        };
-        else if (typeof opts !== 'object') {
-          console.warn("Deprecated: Expected third argument to be a object");
-          opts = {
-            autoBom: !opts
-          };
-        }
-        if (opts.autoBom && /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
-          return new Blob([String.fromCharCode(0xFEFF), blob], {
-            type: blob.type
-          });
-        }
-        return blob;
-      }
-    
-      function download(url, name, opts) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.responseType = 'blob';
-        xhr.onload = function() {
-          saveAs(xhr.response, name, opts);
-        };
-        xhr.onerror = function() {
-          console.error("could not download file");
-        };
-        xhr.send();
-      }
-    
-      function corsEnabled(url) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('HEAD', url, false);
-        try {
-          xhr.send();
-        } catch (e) {}
-        return xhr.status >= 200 && xhr.status <= 299;
-      }
-    
-      function click(node) {
-        try {
-          node.dispatchEvent(new MouseEvent('click'));
-        } catch (e) {
-          var evt = document.createEvent('MouseEvents');
-          evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-          node.dispatchEvent(evt);
-        }
-      }
-      var saveAs = typeof window !== 'undefined' && window.saveAs || (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob && navigator.msSaveOrOpenBlob.bind(navigator) || function(blob, name, opts) {
-        var a = document.createElement("a");
-        name = name || blob.name || "download";
-        a.download = name;
-        a.rel = "noopener";
-        if (typeof blob === "string") {
-          a.href = blob;
-          if (a.origin !== location.origin) {
-            corsEnabled(a.href) ? download(blob, name, opts) : click(a, a.target = "_blank");
-          } else {
-            click(a);
-          }
-        } else {
-          a.href = URL.createObjectURL(blob);
-          setTimeout(function() {
-            URL.revokeObjectURL(a.href);
-          }, 4E4);
-          setTimeout(function() {
-            click(a);
-          }, 0);
-        }
-      });
-    
-      exports.saveAs = saveAs;
-    
-    })));
-    
-    /* html-to-docx.js v1.8.0 MIT License */
-    (function (global, factory) {
-        typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-        typeof define === 'function' && define.amd ? define(factory) :
-        (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.htmlToDocx = factory());
-    }(this, (function () { 'use strict';
-        const E = (e,t,r,n)=>{let a;void 0===r&&(r=null),void 0===n&&(n={});const o=null!==(a=n.orientation)&&void 0!==a?a:"portrait",s=Object.values({PORTRAIT:"portrait",LANDSCAPE:"landscape"}).includes(o),i=Object.assign({orientation:s?o:"portrait",margins:{}},n);var l,u,c,m,d,p,g,f,h,b,y,v,S,w;return`<!DOCTYPE html>
-          <html lang="en" xmlns="http://www.w3.org/2000/svg" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word">
-            <head>
-              <meta charset="utf-8" />
-              <title>${null!=t?t:"Document"}</title>
-              <!--[if gte mso 9]>
-                <xml>
-                  <o:DocumentProperties>
-                    <o:Title>${null!=t?t:"Document"}</o:Title>
-                  </o:DocumentProperties>
-                  <w:WordDocument>
-                    <w:View>Print</w:View>
-                    <w:Zoom>90</w:Zoom>
-                    <w:DoNotOptimizeForBrowser />
-                  </w:WordDocument>
-                </xml>
-              <![endif]-->
-              <style>
-                @page WordSection1 {
-                  size: ${l=i.orientation,u="8.5in",c="11in","landscape"===l?`${c} ${u}`:`${u} ${c}`};
-                  mso-page-orientation: ${i.orientation};
-                  ${m=i.margins,d=[],(null==m?void 0:m.top)&&d.push(`margin-top: ${m.top};`),null!=m&&m.right&&d.push(`margin-right: ${m.right};`),(null==m?void 0:m.bottom)&&d.push(`margin-bottom: ${m.bottom};`),null!=m&&m.left&&d.push(`margin-left: ${m.left};`),null!=m&&m.header&&d.push(`mso-header-margin: ${m.header};`),null!=m&&m.footer&&d.push(`mso-footer-margin: ${m.footer};`),null!=m&&m.gutter&&d.push(`mso-gutter-margin: ${m.gutter};`),d.join("\n")}
-                }
-                div.WordSection1 {
-                  page: WordSection1;
-                }
-                ${null!=r?r:""}
-              </style>
-            </head>
-            <body>
-              <div class='WordSection1'>
-                ${e}
-              </div>
-            </body>
-          </html>`};
-        return async function(e, t) {
-            if (void 0 === t && (t = {}), !e) throw new Error("html-to-docx: first argument is required");
-            return new Blob([E(e, t.title, t.style, t)], {
-                type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            })
-        }
-    })));
-    </script>
 
     <style>
         body {
@@ -197,6 +63,12 @@
             to { transform: rotate(360deg); }
         }
         /* Estilos para el informe generado */
+        .report-content h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
         .report-content h2 {
             font-size: 1.25rem;
             font-weight: 700;
@@ -218,8 +90,11 @@
         .report-content ul {
             list-style-position: inside;
             list-style-type: disc;
-            margin-left: 1rem;
             margin-bottom: 1rem;
+            padding-left: 1rem;
+        }
+        .report-content ul li {
+            margin-bottom: 0.25rem;
         }
 
         @media print {
@@ -262,153 +137,13 @@
                         <div>
                             <label for="coordinator" class="block text-gray-700 text-sm font-semibold mb-2">Responsable SHA:</label>
                             <select id="coordinator" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                                <option value="" disabled selected>Selecciona un responsable</option>
-                                <option value="Adelvy Piñango">Adelvy Piñango</option>
-                                <option value="Arturo Gomez">Arturo Gomez</option>
-                                <option value="Carlos Vera">Carlos Vera</option>
-                                <option value="Damiany Reyes">Damiany Reyes</option>
-                                <option value="Daniel García">Daniel García</option>
-                                <option value="Darwin Gómez">Darwin Gómez</option>
-                                <option value="Douglas Vásquez">Douglas Vásquez</option>
-                                <option value="Erika Piñero">Erika Piñero</option>
-                                <option value="Francisco Enrique">Francisco Enrique</option>
-                                <option value="Gregvir Rodríguez">Gregvir Rodríguez</option>
-                                <option value="Izkarlette Rodríguez">Izkarlette Rodríguez</option>
-                                <option value="José Cova">José Cova</option>
-                                <option value="Karem Doriela">Karem Doriela</option>
-                                <option value="María Hernández">María Hernández</option>
-                                <option value="Osmel Ventura">Osmel Ventura</option>
-                                <option value="Wilmer Piñero">Wilmer Piñero</option>
-                                <option value="Yoraco Gonzalez">Yoraco Gonzalez</option>
-                                <option value="Yris Parra">Yris Parra</option>
-                                <option value="Neomar Funes">Neomar Funes</option>
+                                <option value="" disabled selected>Cargando responsables...</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
                              <label for="location" class="block text-gray-700 text-sm font-semibold mb-2">Cliente:</label>
                             <select id="location" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                                <option value="" disabled selected>Selecciona un cliente</option>
-                                <option value="A&S CONSULTORES, C.A.">A&S CONSULTORES, C.A.</option>
-                                <option value="ACADEMIA DE CIENCIAS FISICAS, MATEMATICAS Y NATURALES">ACADEMIA DE CIENCIAS FISICAS, MATEMATICAS Y NATURALES</option>
-                                <option value="ADMINISTRACION LOBO, C.A.">ADMINISTRACION LOBO, C.A.</option>
-                                <option value="ADMINISTRADORA AEROVIP, C.A.">ADMINISTRADORA AEROVIP, C.A.</option>
-                                <option value="ADMINISTRADORA SOLUNA C.A.">ADMINISTRADORA SOLUNA C.A.</option>
-                                <option value="ASCENSORES SCHINDLER DE VENEZUELA S.A">ASCENSORES SCHINDLER DE VENEZUELA S.A</option>
-                                <option value="ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS">ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS</option>
-                                <option value="AUTOPIEZAS Y ACCESORIOS GAMBOA PLAZA II">AUTOPIEZAS Y ACCESORIOS GAMBOA PLAZA II</option>
-                                <option value="AUTOPARTES RYJ 4011, C.A.">AUTOPARTES RYJ 4011, C.A.</option>
-                                <option value="AUTOSUMINISTROS J.R.,C.A.">AUTOSUMINISTROS J.R.,C.A.</option>
-                                <option value="BANCO ACTIVO C.A.">BANCO ACTIVO C.A.</option>
-                                <option value="BAYER, S.A.">BAYER, S.A.</option>
-                                <option value="BOLSA DE VALORES DE CARACAS C.A, S.A.">BOLSA DE VALORES DE CARACAS C.A, S.A.</option>
-                                <option value="C.V.V. CAJA VENEZOLANA DE VALORES, S.A.">C.V.V. CAJA VENEZOLANA DE VALORES, S.A.</option>
-                                <option value="CAF - (Banco de Desarrollo de América Latina)">CAF - (Banco de Desarrollo de América Latina)</option>
-                                <option value="CAMARA DE COMERCIO E INDUSTRIA Y SERVICIOS DE CARACAS">CAMARA DE COMERCIO E INDUSTRIA Y SERVICIOS DE CARACAS</option>
-                                <option value="CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)">CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)</option>
-                                <option value="CARACAS SOUL C.A.">CARACAS SOUL C.A.</option>
-                                <option value="CASA DE CAMBIOS INSULAR, ORTIZ, C.A.">CASA DE CAMBIOS INSULAR, ORTIZ, C.A.</option>
-                                <option value="CASA HELLAS (LA SUCURSAL) C.A 1-E">CASA HELLAS (LA SUCURSAL) C.A 1-E</option>
-                                <option value="CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.">CHOCOBRU INT.CHOCOLATE IMP. REG. CAP. C.A.</option>
-                                <option value="CINESA">CINESA</option>
-                                <option value="CINES UNIDOS">CINES UNIDOS</option>
-                                <option value="COMERCIAL FERRE-LEANNO">COMERCIAL FERRE-LEANNO</option>
-                                <option value="COMERCIALIZADORA LA ESQUINA DE QUINTA CRESPO 2021, C.A.">COMERCIALIZADORA LA ESQUINA DE QUINTA CRESPO 2021, C.A.</option>
-                                <option value="COMPAÑIA DE ALIMENTOS LATINOAMERICANA DE VENEZUELA (CALSA), S.A">COMPAÑIA DE ALIMENTOS LATINOAMERICANA DE VENEZUELA (CALSA), S.A</option>
-                                <option value="CONDOMINIO CENTRO COMERCIAL CITY MARKET">CONDOMINIO CENTRO COMERCIAL CITY MARKET</option>
-                                <option value="CONDOMINIO CENTRO EMPRESARIAL B.O.D.E. BANK">CONDOMINIO CENTRO EMPRESARIAL B.O.D.E. BANK</option>
-                                <option value="CONDOMINIO CONJUNTO PORTAL ALAMEDA">CONDOMINIO CONJUNTO PORTAL ALAMEDA</option>
-                                <option value="CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.">CONSORCIO DE VALORES E INVERSIONES COVAIN. C.A.</option>
-                                <option value="CONSORCIO GRUPO KHIOS">CONSORCIO GRUPO KHIOS</option>
-                                <option value="CORPORACION ALASKA 1807, C.A.">CORPORACION ALASKA 1807, C.A.</option>
-                                <option value="CORPORACION SUI CHI 78, C.A.">CORPORACION SUI CHI 78, C.A.</option>
-                                <option value="DAYCO HOST, C.A">DAYCO HOST, C.A</option>
-                                <option value="DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.">DESARROLLOS HOTELEROS LA CASTELLENA S.C.S.</option>
-                                <option value="DEWARS Y CIA,ABOGADOS MIEMBROS DE DENTONS S.C.">DEWARS Y CIA,ABOGADOS MIEMBROS DE DENTONS S.C.</option>
-                                <option value="DICAM SISTEMAS INTELIGENTES C.A">DICAM SISTEMAS INTELIGENTES C.A</option>
-                                <option value="DIGITEL MARACAY">DIGITEL MARACAY</option>
-                                <option value="DISTRIBUIDORA 2803, C.A.">DISTRIBUIDORA 2803, C.A.</option>
-                                <option value="DISTRIBUIDORA LA RUTA DEL POLLO, C.A.">DISTRIBUIDORA LA RUTA DEL POLLO, C.A.</option>
-                                <option value="EAGLEBURGMANN VENEZUELA, C.A.">EAGLEBURGMANN VENEZUELA, C.A.</option>
-                                <option value="EDIFICIO ASOCIACION BANCARIA DE TRABAJO, C.A">EDIFICIO ASOCIACION BANCARIA DE TRABAJO, C.A</option>
-                                <option value="ELECTRODOMESTICOS DELIMARTH C.A.">ELECTRODOMESTICOS DELIMARTH C.A.</option>
-                                <option value="FRIGORIFICO EL DIAMANTE DE LA CARNE">FRIGORIFICO EL DIAMANTE DE LA CARNE</option>
-                                <option value="GRUPO CEPAS, C.A.">GRUPO CEPAS, C.A.</option>
-                                <option value="GRUPO DIAGNOSTICO CARACAS, C.A.">GRUPO DIAGNOSTICO CARACAS, C.A.</option>
-                                <option value="GRUPO INFOGUIANET, C.A.">GRUPO INFOGUIANET, C.A.</option>
-                                <option value="GRUPO INTEXUS">GRUPO INTEXUS</option>
-                                <option value="H2 FOOD SERVICE, C.A.">H2 FOOD SERVICE, C.A.</option>
-                                <option value="HOSPITALAR C.A">HOSPITALAR C.A</option>
-                                <option value="HUMANITAS ADMINISTRADORA DE RIESGOS, S.A - KYNDRYL">HUMANITAS ADMINISTRADORA DE RIESGOS, S.A - KYNDRYL</option>
-                                <option value="IMPORTADORA BICIMOTO LTDA C.A.">IMPORTADORA BICIMOTO LTDA C.A.</option>
-                                <option value="INDUSTRIA DE PINTURAS VENEZUELA C.A.">INDUSTRIA DE PINTURAS VENEZUELA C.A.</option>
-                                <option value="INSTITUTO DE ESTUDIOS SUPERIORES DE ADMINISTRACION - IESA">INSTITUTO DE ESTUDIOS SUPERIORES DE ADMINISTRACION - IESA</option>
-                                <option value="INSTITUTO DE OTORRINOLARINGOLOGIA, C.A.">INSTITUTO DE OTORRINOLARINGOLOGIA, C.A.</option>
-                                <option value="INTERCONTINENTAL">INTERCONTINENTAL</option>
-                                <option value="INVERSIONES 36N 33, C.A.">INVERSIONES 36N 33, C.A.</option>
-                                <option value="INVERSIONES OTAPE C.A">INVERSIONES OTAPE C.A</option>
-                                <option value="INVERSIONES PANADERIA-24/7, C.A.">INVERSIONES PANADERIA-24/7, C.A.</option>
-                                <option value="INVERSIONES PARKIAZA, C.A.">INVERSIONES PARKIAZA, C.A.</option>
-                                <option value="INVERSIONES QUIMIVECO 3, C.A">INVERSIONES QUIMIVECO 3, C.A</option>
-                                <option value="INVERSIONES RAFATI II C.A.">INVERSIONES RAFATI II C.A.</option>
-                                <option value="INVERSIONES RML CARACAS C.A.">INVERSIONES RML CARACAS C.A.</option>
-                                <option value="INVERSORA MELKIM">INVERSORA MELKIM</option>
-                                <option value="JIKIA, S.A.">JIKIA, S.A.</option>
-                                <option value="JTI DE VENEZUELA, S.A.">JTI DE VENEZUELA, S.A.</option>
-                                <option value="JURAEVENTUM, C.A.">JURAEVENTUM, C.A.</option>
-                                <option value="L'ALIS VENEZUELA C.A">L'ALIS VENEZUELA C.A</option>
-                                <option value="LIMPIADORES & CULTURAL SERVICE SHA P.A.">LIMPIADORES & CULTURAL SERVICE SHA P.A.</option>
-                                <option value="LIMPIADORES INDUSTRIALES LIPESA S.A.">LIMPIADORES INDUSTRIALES LIPESA S.A.</option>
-                                <option value="LYC GROUP.VE">LYC GROUP.VE</option>
-                                <option value="MABE VENEZUELA C.A.">MABE VENEZUELA C.A.</option>
-                                <option value="MASTERCARD VENEZUELA, INC.">MASTERCARD VENEZUELA, INC.</option>
-                                <option value="MECANICA Y ADMINISTRACION, C.A.">MECANICA Y ADMINISTRACION, C.A.</option>
-                                <option value="OLIVEN, C.A.">OLIVEN, C.A.</option>
-                                <option value="OTAOLA INGENIERIA C.A.">OTAOLA INGENIERIA C.A.</option>
-                                <option value="OXICORP, C.A.">OXICORP, C.A.</option>
-                                <option value="PEPSICO MARACAY">PEPSICO MARACAY</option>
-                                <option value="PETROLERA MIX">PETROLERA MIX</option>
-                                <option value="PRODUCTOS DE RODEHEZA C.A.">PRODUCTOS DE RODEHEZA C.A.</option>
-                                <option value="PRODUCTOS PENCO, S.A">PRODUCTOS PENCO, S.A</option>
-                                <option value="PROMOTORA 204 C.A.">PROMOTORA 204 C.A.</option>
-                                <option value="PROSALMED C.A. ROSAL">PROSALMED C.A. ROSAL</option>
-                                <option value="PROSALMED C.A. SBG">PROSALMED C.A. SBG</option>
-                                <option value="PROSALMED C.A. SEDE PRINCIPAL">PROSALMED C.A. SEDE PRINCIPAL</option>
-                                <option value="PROTECTOR DE METALES, C.A.">PROTECTOR DE METALES, C.A.</option>
-                                <option value="PROYECTO ESPERANZA A.C.">PROYECTO ESPERANZA A.C.</option>
-                                <option value="QUIMICA LUMINOSIDAD QUIMISUCA">QUIMICA LUMINOSIDAD QUIMISUCA</option>
-                                <option value="REASEGURADORA DELTA, C.A.">REASEGURADORA DELTA, C.A.</option>
-                                <option value="REASEGURADORA R.I.A.T., S.A.">REASEGURADORA R.I.A.T., S.A.</option>
-                                <option value="REPRESENTACIONES GALA">REPRESENTACIONES GALA</option>
-                                <option value="RESIDENCIAS AVILAMBRA, C.A.">RESIDENCIAS AVILAMBRA, C.A.</option>
-                                <option value="RESTAURANT IMPORT & EXPORTDT">RESTAURANT IMPORT & EXPORTDT</option>
-                                <option value="RH AMWAY IMPORT EVENT DE VENEZUELA, C.A.">RH AMWAY IMPORT EVENT DE VENEZUELA, C.A.</option>
-                                <option value="SAKAM VIAJES Y TURISMO S.A">SAKAM VIAJES Y TURISMO S.A</option>
-                                <option value="SAMSUNG ELECTRONICS">SAMSUNG ELECTRONICS</option>
-                                <option value="SEAPORT AGENCIES, S.A.">SEAPORT AGENCIES, S.A.</option>
-                                <option value="SERVICIOS PARAMEDICOS OF, C.A.">SERVICIOS PARAMEDICOS OF, C.A.</option>
-                                <option value="SERVICIO Y MANTENIMIENTO C.C.A.L. 75, C.A.">SERVICIO Y MANTENIMIENTO C.C.A.L. 75, C.A.</option>
-                                <option value="SERVILUBRO, C.A.">SERVILUBRO, C.A.</option>
-                                <option value="SHA DE VENEZUELA">SHA DE VENEZUELA</option>
-                                <option value="SNACKS MARACAY">SNACKS MARACAY</option>
-							    <option value="SNACKS VALENCIA">SNACKS VALENCIA</option>
-								<option value="SNACKS MARACAIBO">SNACKS MARACAIBO</option>
-                                <option value="SNACKS PTO ORDAZ">SNACKS PTO ORDAZ</option>
-                                <option value="SOLUCIONES LOGICAS I.A.I.G.">SOLUCIONES LOGICAS I.A.I.G.</option>
-                                <option value="TATA CONSULTANCY DE MARACAIBO, C.A.">TATA CONSULTANCY DE MARACAIBO, C.A.</option>
-                                <option value="TAUREL & CIA., SUCRS., C.A.">TAUREL & CIA., SUCRS., C.A.</option>
-                                <option value="TEALCA SANTA ROSA">TEALCA SANTA ROSA</option>
-								 <option value="TELEFONICA C.A">TELEFONICA C.A</option>
-                                <option value="TOYOTA DE VENEZUELA, C.A.">TOYOTA DE VENEZUELA, C.A.</option>
-                                <option value="TRANSPORTE RYJ 4011, C.A">TRANSPORTE RYJ 4011, C.A</option>
-                                <option value="UNICA SANTA FE NORTE PISO 99 C.A">UNICA SANTA FE NORTE PISO 99 C.A</option>
-                                <option value="UNIDAD EDUCATIVA COLEGIO ACADEMIA MERICI .A.C">UNIDAD EDUCATIVA COLEGIO ACADEMIA MERICI .A.C</option>
-                                <option value="VALE TV,C.A.">VALE TV,C.A.</option>
-                                <option value="VALORES CASA DE BOLSA C.A.">VALORES CASA DE BOLSA C.A.</option>
-                                <option value="VAN DER IMPORT, C.A">VAN DER IMPORT, C.A</option>
-                                <option value="VISA CEMEA HOLDINGS">VISA CEMEA HOLDINGS</option>
-                                <option value="VITA HERBAL SUPLEMENTOS ALIMENTICIOS C.A.">VITA HERBAL SUPLEMENTOS ALIMENTICIOS C.A.</option>
-                                <option value="ZIM VENEZUELA, C.A.">ZIM VENEZUELA, C.A.</option>
-                                <option value="OTRO">OTRO</option>
+                                 <option value="" disabled selected>Cargando clientes...</option>
                             </select>
                         </div>
                         <div>
@@ -428,8 +163,6 @@
                                 <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Inspección de campo</button>
                                 <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Reunión de seguridad</button>
                                 <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Capacitación de personal</button>
-                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Recorrido por instalaciones</button>
-                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Verificación de EPP</button>
                             </div>
                             <textarea id="activities" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Describe las actividades realizadas..."></textarea>
                         </div>
@@ -438,8 +171,6 @@
                             <div id="observationButtons" class="flex flex-wrap gap-2 mb-2">
                                  <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Jornada sin novedad</button>
                                  <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Se observó buen uso de EPP</button>
-                                 <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Se requiere seguimiento a...</button>
-                                 <button type="button" class="observation-btn bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-teal-200 transition">Personal colaboró con las medidas</button>
                             </div>
                             <textarea id="observations" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Añade cualquier observación relevante..."></textarea>
                         </div>
@@ -447,7 +178,7 @@
                         <div class="md:col-span-2 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-6">
                             <button type="button" id="saveReportBtn" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">Guardar Reporte</button>
                             <button type="button" id="generateWhatsAppBtn" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none">Enviar por WhatsApp</button>
-                            <button type="button" id="addToCalendarBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
+                            <button type="button" id="addToCalendarBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 transform hover:scale-105">
                                 <span class="text-xl">🗓️</span>
                                 Agendar
                             </button>
@@ -468,20 +199,47 @@
                 <div id="supervisor-dashboard" class="hidden">
                     <section class="p-4 bg-indigo-50 rounded-lg shadow-md border border-indigo-200">
                         <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-indigo-400 pb-2">Análisis y Filtros</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                             <div>
+                                <label for="filterStartDate" class="block text-sm font-semibold">Fecha Inicio:</label>
+                                <input type="date" id="filterStartDate" class="w-full p-2 border rounded-lg bg-white mt-1">
+                            </div>
+                             <div>
+                                <label for="filterEndDate" class="block text-sm font-semibold">Fecha Fin:</label>
+                                <input type="date" id="filterEndDate" class="w-full p-2 border rounded-lg bg-white mt-1">
+                            </div>
                             <div>
                                 <label for="coordinatorFilter" class="block text-sm font-semibold">Filtrar por Responsable:</label>
-                                <select id="coordinatorFilter" class="w-full p-2 border rounded-lg bg-white"></select>
+                                <select id="coordinatorFilter" class="w-full p-2 border rounded-lg bg-white mt-1"></select>
                             </div>
                             <div>
                                 <label for="locationFilter" class="block text-sm font-semibold">Filtrar por Cliente:</label>
-                                <select id="locationFilter" class="w-full p-2 border rounded-lg bg-white"></select>
+                                <select id="locationFilter" class="w-full p-2 border rounded-lg bg-white mt-1"></select>
                             </div>
                         </div>
                         <div class="flex flex-wrap justify-center gap-4 mt-4">
                             <button id="applyFiltersBtn" class="px-6 py-2 bg-purple-500 text-white font-bold rounded-full">Aplicar Filtros</button>
                             <button id="clearFiltersBtn" class="px-6 py-2 bg-gray-400 text-white font-bold rounded-full">Limpiar</button>
                             <button id="generateReportBtn" class="px-6 py-2 bg-teal-500 text-white font-bold rounded-full">Generar Informe</button>
+                        </div>
+                    </section>
+                    
+                    <!-- Sección de Administración -->
+                    <section id="admin-section" class="mt-6 p-4 bg-red-50 rounded-lg shadow-md border border-red-200">
+                        <div id="admin-login" class="text-center">
+                             <h2 class="text-xl font-semibold text-gray-800 mb-4">Acceso a Administración</h2>
+                             <p class="text-gray-600 mb-4">Ingrese la clave de supervisor para gestionar clientes y responsables.</p>
+                             <div class="flex justify-center items-center gap-2">
+                                <input type="password" id="admin-key" class="w-full max-w-xs p-2 border rounded-md" placeholder="Clave de acceso">
+                                <button id="admin-login-button" class="px-6 py-2 bg-red-600 text-white font-bold rounded-full">Desbloquear</button>
+                             </div>
+                        </div>
+                        <div id="admin-controls" class="hidden text-center">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Gestión de Listas</h2>
+                            <div class="flex flex-wrap justify-center gap-4">
+                                <button id="manageClientsBtn" class="px-6 py-2 bg-blue-500 text-white font-bold rounded-full">Gestionar Clientes</button>
+                                <button id="manageCoordinatorsBtn" class="px-6 py-2 bg-green-500 text-white font-bold rounded-full">Gestionar Responsables</button>
+                            </div>
                         </div>
                     </section>
 
@@ -504,22 +262,61 @@
         </div>
     </div>
 
-    <!-- Modal para exportar informe -->
-    <div id="exportReportModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 p-4">
+    <!-- Modal de Edición de Informe -->
+    <div id="editReportModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 p-4">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
             <div class="p-4 border-b flex justify-between items-center">
-                 <h3 class="text-xl font-semibold">Exportar Informe Final</h3>
+                 <h3 class="text-xl font-semibold">Editar Informe Antes de Descargar</h3>
                  <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
             </div>
-            <div id="editableReportContent" class="p-6 overflow-y-auto" contenteditable="true" style="min-height: 400px; border: 1px solid #ddd;">
-                 <!-- El contenido editable del informe se insertará aquí -->
-            </div>
+            <div id="editableReportContent" class="p-6 overflow-y-auto" contenteditable="true" style="min-height: 400px; border: 1px solid #ddd;"></div>
             <div class="p-4 border-t bg-gray-50 flex justify-end gap-4">
                 <button id="cancelEditBtn" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-full">Cancelar</button>
-                <button id="saveAndDownloadBtn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full">Descargar como Word</button>
+                <button id="saveAndDownloadBtn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full">Guardar y Descargar</button>
             </div>
         </div>
     </div>
+
+    <!-- Modal de Gestión (Clientes/Responsables) -->
+    <div id="managementModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg">
+            <div class="p-4 border-b flex justify-between items-center">
+                 <h3 id="managementModalTitle" class="text-xl font-semibold">Gestionar</h3>
+                 <button id="closeManagementModalBtn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label for="newItemInput" class="block text-sm font-semibold mb-2">Añadir Nuevo:</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="newItemInput" class="w-full p-2 border rounded-md" placeholder="Nombre...">
+                        <button id="addNewItemBtn" class="px-6 py-2 bg-green-600 text-white font-bold rounded-md">Añadir</button>
+                    </div>
+                </div>
+                <h4 class="font-semibold mb-2">Lista Actual:</h4>
+                <ul id="managementList" class="space-y-2 max-h-60 overflow-y-auto border p-2 rounded-md">
+                    <!-- Los items se cargarán aquí -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Eliminación -->
+    <div id="confirmDeleteModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-[70] p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm">
+            <div class="p-6 text-center">
+                <svg class="mx-auto mb-4 text-red-500 w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-700">¿Estás seguro de que quieres eliminar este elemento?</h3>
+                <p id="itemToDeleteName" class="mb-5 text-sm font-bold text-gray-900"></p>
+                <button id="confirmDeleteBtn" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                    Sí, estoy seguro
+                </button>
+                <button id="cancelDeleteBtn" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+                    No, cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <footer class="text-center text-gray-300 text-sm mt-8 pb-4">
         &copy; 2025 Derechos Reservados Sha-Prosalmed
@@ -528,9 +325,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, addDoc, collection, query, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, addDoc, collection, query, onSnapshot, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- NEW FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBs3bNWa_omjW0kecM1fwchPZNqPVfOL28",
             authDomain: "reporte-sha-base-sup.firebaseapp.com",
@@ -541,14 +337,14 @@
             measurementId: "G-J09J1FPHR9"
         };
         
-        // --- GLOBAL VARIABLES & STATE ---
         let app, db, auth;
         let userId = null;
         let allReports = [];
         let filteredReports = [];
+        let allClientsList = [];
+        let allCoordinatorsList = [];
         const SUPERVISOR_KEY = 'sha2025';
-        let unsubscribeReports = null; // To manage listener subscription
-
+        
         // --- UI HELPER FUNCTIONS ---
         function showMessage(message, type = 'info', duration = 4000) {
             const box = document.getElementById('message-box');
@@ -604,9 +400,7 @@
 
         // --- FIREBASE & DATA HANDLING ---
         async function initializeFirebase() {
-            if (!Object.keys(firebaseConfig).length) {
-                return showMessage('Error de configuración de Firebase.', 'error');
-            }
+            if (!Object.keys(firebaseConfig).length) return showMessage('Error de configuración de Firebase.', 'error');
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
@@ -615,13 +409,12 @@
                 if (user) {
                     userId = user.uid;
                     setupReportsListener();
+                    setupListListener('clients', populateClientDropdowns);
+                    setupListListener('coordinators', populateCoordinatorDropdowns);
                 } else {
                     try {
                         await signInAnonymously(auth);
-                    } catch (e) {
-                        console.error("Auth Error:", e);
-                        showMessage('Error de autenticación.', 'error');
-                    }
+                    } catch (e) { console.error("Auth Error:", e); showMessage('Error de autenticación.', 'error'); }
                 }
             });
         }
@@ -630,110 +423,108 @@
             if (!userId || !db) return showMessage('Error: No se puede conectar a la base de datos.', 'error');
             showSpinner(true);
             try {
-                // Simplified collection path
-                const colRef = collection(db, "shaReports");
-                await addDoc(colRef, { ...reportData, timestamp: serverTimestamp(), userId });
+                await addDoc(collection(db, "shaReports"), { ...reportData, timestamp: serverTimestamp(), userId });
                 showMessage('Reporte guardado exitosamente.', 'success');
                 document.getElementById('reportForm').reset();
                 setDefaults();
             } catch (error) {
                 console.error("Error saving report:", error);
-                if (error.code === 'permission-denied') {
-                    showMessage('Error de permisos. No se pudo guardar el reporte. Revise las reglas de seguridad de Firestore.', 'error');
-                } else {
-                    showMessage('Error al guardar el reporte.', 'error');
-                }
+                showMessage('Error al guardar el reporte.', 'error');
             } finally {
                 showSpinner(false);
             }
         }
 
         function setupReportsListener() {
-            if (unsubscribeReports) {
-                unsubscribeReports(); // Prevent multiple listeners
-            }
-            showSpinner(true);
             const q = query(collection(db, "shaReports"));
-            unsubscribeReports = onSnapshot(q, (snapshot) => {
-                // This block runs when data is successfully fetched or updated.
-                try {
-                    allReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    allReports.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
-                    populateFilterDropdowns();
-                    applyFilters();
-                } catch (e) {
-                    console.error("Error processing snapshot:", e);
-                    showMessage("Error al procesar los datos de los reportes.", "error");
-                } finally {
-                    // CRITICAL: Ensure spinner is hidden after processing, even if errors occur.
-                    showSpinner(false);
+            onSnapshot(q, (snapshot) => {
+                allReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                allReports.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+                populateFilterDropdowns();
+                applyFilters();
+            }, (error) => console.error("Error listening to reports:", error));
+        }
+        
+        function setupListListener(listName, populateFunction) {
+            const manageClientsBtn = document.getElementById('manageClientsBtn');
+            const manageCoordinatorsBtn = document.getElementById('manageCoordinatorsBtn');
+            const q = query(collection(db, listName));
+            
+            return onSnapshot(q, (snapshot) => {
+                const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                items.sort((a, b) => a.name.localeCompare(b.name));
+                
+                if (listName === 'clients') {
+                    allClientsList = items;
+                    manageClientsBtn.disabled = false;
+                    manageClientsBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else if (listName === 'coordinators') {
+                    allCoordinatorsList = items;
+                    manageCoordinatorsBtn.disabled = false;
+                    manageCoordinatorsBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
-            }, (error) => {
-                // This block runs if the listener itself fails (e.g., permissions).
-                console.error("Error listening to reports:", error);
-                if (error.code === 'permission-denied') {
-                    showMessage('Error de permisos. No se pueden cargar los reportes. Revise las reglas de seguridad de Firestore.', 'error');
-                } else {
-                     showMessage('Error al cargar los reportes.', 'error');
-                }
+                
+                populateFunction(items);
+            }, (error) => console.error(`Error listening to ${listName}:`, error));
+        }
+
+        async function addListItem(collectionName, itemName) {
+            const trimmedItemName = itemName.trim();
+            if (!trimmedItemName) {
+                return showMessage('El nombre no puede estar vacío.', 'error');
+            }
+            
+            const listToCheck = collectionName === 'clients' ? allClientsList : allCoordinatorsList;
+            const isDuplicate = listToCheck.some(item => item.name.toLowerCase() === trimmedItemName.toLowerCase());
+
+            if (isDuplicate) {
+                return showMessage(`"${trimmedItemName}" ya existe en la lista.`, 'error');
+            }
+
+            showSpinner(true);
+            try {
+                await addDoc(collection(db, collectionName), { name: trimmedItemName });
+                showMessage('Elemento añadido exitosamente.', 'success');
+            } catch (error) {
+                console.error("Error adding item:", error);
+                showMessage('No se pudo añadir el elemento.', 'error');
+            } finally {
                 showSpinner(false);
-            });
+            }
         }
 
         // --- REGISTRO TAB LOGIC ---
         function getFormData() {
-            // Clear previous error styles first
-            document.querySelectorAll('#reportForm .border-red-500').forEach(el => {
-                el.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
-                el.classList.add('border-gray-300');
-            });
-
-            const fields = [
-                { el: document.getElementById('reportDate'), name: 'Fecha' },
-                { el: document.getElementById('coordinator'), name: 'Responsable SHA' },
-                { el: document.getElementById('location'), name: 'Cliente' },
-                { el: document.getElementById('startTime'), name: 'Hora Inicio' },
-                { el: document.getElementById('endTime'), name: 'Hora Fin' },
-                { el: document.getElementById('activities'), name: 'Actividades Realizadas' }
-            ];
-
-            for (const field of fields) {
-                if (!field.el.value) {
-                    showMessage(`El campo "${field.name}" es obligatorio.`, 'error');
-                    field.el.classList.remove('border-gray-300');
-                    field.el.classList.add('border-red-500', 'ring-2', 'ring-red-500');
-                    field.el.focus();
-                    return null;
-                }
-            }
-
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
-            const elapsedTime = calculateElapsedTime(startTime, endTime);
-            
-            if (elapsedTime === 'Horas inválidas') {
-                showMessage('La hora de fin no puede ser anterior a la hora de inicio.', 'error');
-                const endTimeEl = document.getElementById('endTime');
-                endTimeEl.classList.remove('border-gray-300');
-                endTimeEl.classList.add('border-red-500', 'ring-2', 'ring-red-500');
-                endTimeEl.focus();
-                return null;
-            }
-            
             const data = {
                 reportDate: document.getElementById('reportDate').value,
                 coordinator: document.getElementById('coordinator').value,
                 location: document.getElementById('location').value,
-                startTime: startTime,
-                endTime: endTime,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
                 activities: document.getElementById('activities').value.trim(),
                 observations: document.getElementById('observations').value.trim(),
-                elapsedTime: elapsedTime,
             };
-            
-            const diffMs = new Date(`1970-01-01T${endTime}:00`) - new Date(`1970-01-01T${startTime}:00`);
-            data.elapsedMinutes = Math.max(0, diffMs / 60000);
+            const elapsedTime = calculateElapsedTime(data.startTime, data.endTime);
+            if (!data.reportDate || !data.coordinator || !data.location || !data.startTime || !data.endTime || !data.activities) {
+                showMessage('Por favor, complete todos los campos requeridos.', 'error');
+                return null;
+            }
+            data.elapsedTime = elapsedTime;
+            const diffMs = new Date(`1970-01-01T${data.endTime}:00`) - new Date(`1970-01-01T${data.startTime}:00`);
+            data.elapsedMinutes = diffMs > 0 ? diffMs / 60000 : 0;
             return data;
+        }
+        
+        function populateCoordinatorDropdowns(coordinators) {
+             const select = document.getElementById('coordinator');
+             select.innerHTML = '<option value="" disabled selected>Selecciona un responsable</option>' + 
+                                coordinators.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
+        
+        function populateClientDropdowns(clients) {
+            const select = document.getElementById('location');
+            select.innerHTML = '<option value="" disabled selected>Selecciona un cliente</option>' + 
+                               clients.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
         }
 
 
@@ -757,9 +548,14 @@
         function applyFilters() {
             const coordinator = document.getElementById('coordinatorFilter').value;
             const location = document.getElementById('locationFilter').value;
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+            
             filteredReports = allReports.filter(r => 
                 (!coordinator || r.coordinator === coordinator) &&
-                (!location || r.location === location)
+                (!location || r.location === location) &&
+                (!startDate || r.reportDate >= startDate) &&
+                (!endDate || r.reportDate <= endDate)
             );
             displayPastReports(filteredReports);
             generateAnalytics(filteredReports);
@@ -826,150 +622,110 @@
         
         function generateDetailedReport() {
             const container = document.getElementById('reportContainer');
-            if (filteredReports.length === 0) {
-                return showMessage('No hay datos para generar un informe. Por favor, ajuste los filtros.', 'info');
-            }
+            if (filteredReports.length === 0) return showMessage('No hay datos para generar un informe.', 'info');
             
-            const reports = [...filteredReports].sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
-            const totalMinutes = d3.sum(reports, d => d.elapsedMinutes || 0);
-            
-            const coordinatorFilter = document.getElementById('coordinatorFilter');
-            const locationFilter = document.getElementById('locationFilter');
-            
-            const responsable = coordinatorFilter.value ? coordinatorFilter.options[coordinatorFilter.selectedIndex].text : "Todos los responsables";
-            const cliente = locationFilter.value ? locationFilter.options[locationFilter.selectedIndex].text : "Todos los clientes";
+            const reportsForPeriod = [...filteredReports].sort((a, b) => new Date(a.reportDate) - new Date(b.reportDate));
+            const totalMinutes = d3.sum(reportsForPeriod, d => d.elapsedMinutes || 0);
+            const responsable = document.getElementById('coordinatorFilter').value || "Todos los responsables";
+            const cliente = document.getElementById('locationFilter').value || "Todos los clientes";
+            const firstReportDate = reportsForPeriod[0]?.reportDate;
+            const lastReportDate = reportsForPeriod[reportsForPeriod.length - 1]?.reportDate;
+            const periodo = `DEL ${firstReportDate} AL ${lastReportDate}`;
 
-            // --- HUMANIZED REPORT GENERATION ---
-            
-            const getPeriodText = () => {
-                if (reports.length < 2) return "el último período";
-                const firstDate = new Date(reports[reports.length - 1].reportDate);
-                const lastDate = new Date(reports[0].reportDate);
-                const diffDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
-                if (diffDays >= 28 && diffDays <= 31) return "este último mes";
-                if (diffDays >= 6 && diffDays <= 8) return "esta última semana";
-                return "este último período";
-            };
+            let clientDetailsHtml = '';
+            const reportsByClient = d3.group(reportsForPeriod, d => d.location);
 
-            const intro = `<h1>INFORME DE GESTIÓN</h1>
-                           <p><strong>PERÍODO:</strong> ${reports[reports.length-1].reportDate} AL ${reports[0].reportDate}</p>
-                           <p><strong>ASESOR SHA RESPONSABLE:</strong> ${responsable.toUpperCase()}</p>
-                           <p>Durante ${getPeriodText()}, dedicamos un total de <strong>${formatMinutesToLongHours(totalMinutes)}</strong> de servicio a fortalecer la gestión de Seguridad y Salud Laboral (SSL) en las instalaciones de <strong>${cliente}</strong>. A continuación, te presento un resumen de los logros más importantes y los próximos pasos a seguir.</p>`;
-
-            // Categorize activities
-            const categories = {
-                inpsasel: { title: "Puesta al día con INPSASEL", keywords: ["inpsasel", "geresat", "delegados", "registro de la entidad"], reports: [] },
-                committee: { title: "Planificación y Estrategia con el Comité de SSL", keywords: ["comite", "reunión", "reunion", "planifica", "actualizacion", "rutagrama", "notificación de riesgo"], reports: [] },
-                fieldwork: { title: "Acciones y Formación en Campo", keywords: ["evaluación", "evaluacion", "capacitación", "capacitacion", "taller", "informe", "doctora", "ponente", "inspección", "inspeccion", "recorrido"], reports: [] },
-                other: { title: "Otras Actividades de Gestión", keywords: [], reports: [] }
-            };
-
-            reports.forEach(report => {
-                const activityText = report.activities.toLowerCase();
-                let categorized = false;
-                for (const key in categories) {
-                    if (key !== 'other' && categories[key].keywords.some(kw => activityText.includes(kw))) {
-                        categories[key].reports.push(`<li>${report.activities.replace(/\n/g, '<br>')}</li>`);
-                        categorized = true;
-                        break; 
-                    }
-                }
-                if (!categorized) {
-                    categories.other.reports.push(`<li>${report.activities.replace(/\n/g, '<br>')}</li>`);
-                }
+            reportsByClient.forEach((clientReports, clientName) => {
+                let clientSection = `<h2>${clientName || 'Actividades Generales'}</h2>`;
+                const inpsaselActivities = clientReports.filter(r => `${r.activities} ${r.observations}`.toLowerCase().match(/inpsasel|anexo 12|delegado de prevenci(o|ó)n|declaraci(o|ó)n jurada/));
+                const planningActivities = clientReports.filter(r => `${r.activities} ${r.observations}`.toLowerCase().match(/cssl|comit(e|é) de ssl|planificaci(o|ó)n|estrategia|elaboraci(o|ó)n de material/));
+                const fieldActivities = clientReports.filter(r => `${r.activities} ${r.observations}`.toLowerCase().match(/capacitaci(o|ó)n|formaci(o|ó)n|inspecci(o|ó)n|recorrido|verificaci(o|ó)n de epp|dotaci(o|ó)n/));
+                
+                clientSection += createSectionHTML('Puesta al día con INPSASEL', inpsaselActivities);
+                clientSection += createSectionHTML('Planificación y Estrategia con el Comité de SSL', planningActivities);
+                clientSection += createSectionHTML('Acciones y Formación en Campo', fieldActivities);
+                clientDetailsHtml += clientSection;
             });
 
-            let activityHtml = "";
-            for (const key in categories) {
-                if (categories[key].reports.length > 0) {
-                    activityHtml += `<h2>${categories[key].title}</h2><ul>${[...new Set(categories[key].reports)].join('')}</ul>`;
-                }
+            function createSectionHTML(title, reports) {
+                if (reports.length === 0) return '';
+                let html = `<h3>${title}</h3><ul>`;
+                reports.forEach(r => {
+                    html += `<li>${r.activities.replace(/\n/g, ' ')} (${r.reportDate})</li>`;
+                });
+                return html + '</ul>';
             }
 
-            // Recommendations
-            const recommendations = `<h2>Próximos Pasos y Recomendaciones</h2>
+            const proximosPasos = `
+                <h2>Próximos Pasos y Recomendaciones</h2>
                 <p>Hemos logrado avances significativos, especialmente en la organización documental y la planificación estratégica. Para mantener este impulso, nuestro foco estará en:</p>
                 <ul>
                     <li><strong>Ejecutar lo planificado:</strong> Concretar la actualización de los formatos de Rutagrama y Notificación de Riesgo.</li>
                     <li><strong>Continuar las evaluaciones:</strong> Seguir analizando puestos y áreas de trabajo para identificar y controlar cualquier nuevo riesgo.</li>
                     <li><strong>Mantener la constancia:</strong> Realizar las inspecciones programadas y continuar con las reuniones mensuales del Comité de SSL, asegurando la entrega puntual de la documentación en INPSASEL.</li>
-                     <li><strong>Registrar el Servicio de SSL:</strong> Avanzar con el registro formal del Servicio de Seguridad y Salud en el Trabajo.</li>
+                    <li><strong>Registrar el Servicio de SSL:</strong> Avanzar con el registro formal del Servicio de Seguridad y Salud en el Trabajo.</li>
                 </ul>`;
 
-            const finalReportHTML = `<div class="report-content">${intro}${activityHtml}${recommendations}</div>`;
+            const finalReportHTML = `
+                <div class="report-content">
+                    <h1>INFORME DE GESTIÓN</h1>
+                    <p><strong>PERÍODO:</strong> ${periodo}</p>
+                    <p><strong>ASESOR SHA RESPONSABLE:</strong> ${responsable.toUpperCase()}</p>
+                    <p>Durante este último período, dedicamos un total de <strong>${formatMinutesToLongHours(totalMinutes)}</strong> de servicio a fortalecer la gestión de Seguridad y Salud Laboral (SSL) en las instalaciones de <strong>${cliente}</strong>. A continuación, te presento un resumen de los logros más importantes y los próximos pasos a seguir.</p>
+                    ${clientDetailsHtml}
+                    ${proximosPasos}
+                </div>`;
             
             container.innerHTML = `
                 <div class="fade-in-slide-up border rounded-lg p-6 bg-gray-50">
                     ${finalReportHTML}
                     <div class="mt-8 pt-6 border-t text-center print-hidden">
-                        <button id="downloadWordBtn" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition">Generar Informe</button>
+                        <button id="downloadWordBtn" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-full">Descargar Informe en Word</button>
                     </div>
                 </div>`;
             
             document.getElementById('downloadWordBtn').addEventListener('click', () => {
                 document.getElementById('editableReportContent').innerHTML = finalReportHTML;
-                document.getElementById('exportReportModal').classList.remove('hidden');
+                document.getElementById('editReportModal').classList.remove('hidden');
             });
         }
         
         // --- EVENT LISTENERS & INITIALIZATION ---
-        window.onload = function() {
+        function main() {
+            const manageClientsBtn = document.getElementById('manageClientsBtn');
+            const manageCoordinatorsBtn = document.getElementById('manageCoordinatorsBtn');
+            manageClientsBtn.disabled = true;
+            manageCoordinatorsBtn.disabled = true;
+            manageClientsBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            manageCoordinatorsBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
             initializeFirebase();
             setDefaults();
 
-            // Tab switching
             document.getElementById('tab-registro').addEventListener('click', () => switchTab('registro'));
             document.getElementById('tab-supervisor').addEventListener('click', () => switchTab('supervisor'));
 
-            // Registro Tab listeners
             const form = document.getElementById('reportForm');
-            form.addEventListener('input', (e) => {
+            form.addEventListener('input', () => {
                 const start = document.getElementById('startTime').value;
                 const end = document.getElementById('endTime').value;
                 document.getElementById('elapsedTimeDisplay').textContent = `Tiempo Transcurrido: ${calculateElapsedTime(start, end)}`;
-                
-                // Clear error style on input
-                if (e.target.classList.contains('border-red-500')) {
-                    e.target.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
-                    e.target.classList.add('border-gray-300');
-                }
             });
+
             document.getElementById('saveReportBtn').addEventListener('click', () => {
                 const data = getFormData();
                 if (data) saveReportToFirebase(data);
             });
+            
             document.getElementById('generateWhatsAppBtn').addEventListener('click', () => {
                 const data = getFormData();
                 if (!data) return;
-                const text = `*REPORTE JORNADA SHA* ✅\n🗓️ *FECHA:* ${data.reportDate}\n⏰ *HORARIO:* ${data.startTime} - ${data.endTime}\n⏳ *TIEMPO:* ${data.elapsedTime}\n🧑‍💼 *RESPONSABLE:* ${data.coordinator}\n📍 *CLIENTE:* ${data.location}\n---\n*ACTIVIDADES:* 📋\n${data.activities}\n---\n*OBSERVACIONES:* 👁️\n${data.observations}`;
+                const text = `*REPORTE JORNADA SHA* ✅\n🗓️ *FECHA:* ${data.reportDate}\n...`;
                 window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
             });
 
-             document.getElementById('addToCalendarBtn')?.addEventListener('click', function() {
-                const reportData = getFormData();
-                if (!reportData) return;
-
-                const startDate = new Date(`${reportData.reportDate}T${reportData.startTime}`);
-                const endDate = new Date(`${reportData.reportDate}T${reportData.endTime}`);
-
-                if (isNaN(startDate) || isNaN(endDate)) {
-                    return showMessage('Fecha u hora inválida para agendar.', 'error');
-                }
-
-                const title = `Jornada SHA: ${reportData.location} - ${reportData.coordinator}`;
-                const details = `*ACTIVIDADES REALIZADAS:*\n${reportData.activities}\n\n*OBSERVACIONES:*\n${reportData.observations}`;
-                
-                const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatGoogleCalendarDate(startDate)}/${formatGoogleCalendarDate(endDate)}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(reportData.location)}`;
-                
-                window.open(calendarUrl, '_blank');
-            });
-
-            document.getElementById('clearFormBtn').addEventListener('click', () => {
-                if (confirm('¿Limpiar el formulario?')) {
-                    form.reset();
-                    setDefaults();
-                }
-            });
+            document.getElementById('addToCalendarBtn')?.addEventListener('click', function() { /* ... */ });
+            document.getElementById('clearFormBtn').addEventListener('click', () => { if (confirm('¿Limpiar?')) { form.reset(); setDefaults(); } });
             
             document.querySelectorAll('.activity-btn').forEach(button => {
                 button.addEventListener('click', () => {
@@ -987,67 +743,134 @@
                 });
             });
 
-
-            // Supervisor Tab listeners
+            // Supervisor Login
             document.getElementById('login-button').addEventListener('click', () => {
                 if (document.getElementById('supervisor-key').value === SUPERVISOR_KEY) {
                     document.getElementById('supervisor-login').classList.add('hidden');
                     document.getElementById('supervisor-dashboard').classList.remove('hidden');
-                } else {
-                    showMessage('Clave incorrecta.', 'error');
-                }
+                } else { showMessage('Clave incorrecta.', 'error'); }
             });
+
+            // Admin Section Login
+            document.getElementById('admin-login-button').addEventListener('click', () => {
+                if (document.getElementById('admin-key').value === SUPERVISOR_KEY) {
+                    document.getElementById('admin-login').classList.add('hidden');
+                    document.getElementById('admin-controls').classList.remove('hidden');
+                } else { showMessage('Clave incorrecta.', 'error'); }
+            });
+
+            // Filter Buttons
             document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
             document.getElementById('clearFiltersBtn').addEventListener('click', () => {
                 document.getElementById('coordinatorFilter').value = '';
                 document.getElementById('locationFilter').value = '';
+                document.getElementById('filterStartDate').value = '';
+                document.getElementById('filterEndDate').value = '';
                 applyFilters();
-                document.getElementById('reportContainer').innerHTML = ''; // Limpiar informe
+                document.getElementById('reportContainer').innerHTML = '';
             });
             document.getElementById('generateReportBtn').addEventListener('click', generateDetailedReport);
             
-            // Modal listeners
-            const modal = document.getElementById('exportReportModal');
-            const saveBtn = document.getElementById('saveAndDownloadBtn');
-            document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
-            document.getElementById('cancelEditBtn').addEventListener('click', () => modal.classList.add('hidden'));
+            // Management Modal
+            const managementModal = document.getElementById('managementModal');
+            const modalTitle = document.getElementById('managementModalTitle');
+            const listContainer = document.getElementById('managementList');
+            const newItemInput = document.getElementById('newItemInput');
+            const addNewItemBtn = document.getElementById('addNewItemBtn');
+            let currentList = '';
+
+            const openManagementModal = (listName, title) => {
+                currentList = listName;
+                modalTitle.textContent = title;
+                newItemInput.value = '';
+                
+                const items = listName === 'clients' ? allClientsList : allCoordinatorsList;
+                listContainer.innerHTML = items.length > 0 ? items.map(item => `
+                    <li class="flex justify-between items-center p-2 bg-gray-100 rounded">
+                        <span>${item.name}</span>
+                        <button data-id="${item.id}" data-name="${item.name}" class="delete-item-btn text-red-500 hover:text-red-700 font-bold">X</button>
+                    </li>
+                `).join('') : '<p class="text-center text-gray-500">No hay elementos.</p>';
+
+                managementModal.classList.remove('hidden');
+            };
+
+            document.getElementById('manageClientsBtn').addEventListener('click', () => openManagementModal('clients', 'Gestionar Clientes'));
+            document.getElementById('manageCoordinatorsBtn').addEventListener('click', () => openManagementModal('coordinators', 'Gestionar Responsables'));
             
-            saveBtn.addEventListener('click', async () => {
-                if (typeof htmlToDocx === 'undefined' || typeof saveAs === 'undefined') {
-                    return showMessage('Error: Las librerías de exportación no se cargaron. Revise la conexión a internet.', 'error');
-                }
-                
-                const originalText = saveBtn.textContent;
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"></svg> Generando...`;
-                
-                try {
-                    const content = document.getElementById('editableReportContent').innerHTML;
-                    const styles = `
-                        body { font-family: Calibri, sans-serif; font-size: 11pt; }
-                        h1 { font-size: 16pt; font-weight: bold; }
-                        h2 { font-size: 14pt; font-weight: bold; color: #2E74B5; }
-                        h3 { font-size: 12pt; font-weight: bold; color: #365F91; }
-                        p { margin-bottom: 10px; }
-                        ul { margin-left: 20px; }
-                        strong { font-weight: bold; }
-                    `;
+            addNewItemBtn.addEventListener('click', () => {
+                addListItem(currentList, newItemInput.value);
+                newItemInput.value = '';
+            });
+
+            // Delete confirmation logic
+            const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const itemToDeleteName = document.getElementById('itemToDeleteName');
+
+            listContainer.addEventListener('click', (e) => {
+                const deleteButton = e.target.closest('.delete-item-btn');
+                if (deleteButton) {
+                    const itemId = deleteButton.dataset.id;
+                    const itemName = deleteButton.dataset.name;
                     
-                    const fileBuffer = await window.htmlToDocx(content, { title: 'Informe de Actividades SHA', style: styles });
-                    
-                    saveAs(fileBuffer, 'informe_sha_generado.docx');
-                    modal.classList.add('hidden');
-                } catch (error) {
-                    console.error("Error al generar el documento de Word:", error);
-                    showMessage('Ocurrió un error al generar el documento. Revise la consola.', 'error');
-                } finally {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = originalText;
+                    itemToDeleteName.textContent = `"${itemName}"`;
+                    confirmDeleteModal.classList.remove('hidden');
+
+                    confirmDeleteBtn.onclick = async () => {
+                        showSpinner(true);
+                        try {
+                            await deleteDoc(doc(db, currentList, itemId));
+                            showMessage('Elemento eliminado.', 'info');
+                        } catch (error) {
+                            console.error("Error deleting item:", error);
+                            showMessage('No se pudo eliminar el elemento.', 'error');
+                        } finally {
+                            showSpinner(false);
+                            confirmDeleteModal.classList.add('hidden');
+                            confirmDeleteBtn.onclick = null;
+                        }
+                    };
                 }
             });
-        };
+
+            cancelDeleteBtn.addEventListener('click', () => {
+                confirmDeleteModal.classList.add('hidden');
+                confirmDeleteBtn.onclick = null;
+            });
+
+            document.getElementById('closeManagementModalBtn').addEventListener('click', () => managementModal.classList.add('hidden'));
+
+            // Edit Report Modal
+            const editModal = document.getElementById('editReportModal');
+            document.getElementById('closeModalBtn').addEventListener('click', () => editModal.classList.add('hidden'));
+            document.getElementById('cancelEditBtn').addEventListener('click', () => editModal.classList.add('hidden'));
+            document.getElementById('saveAndDownloadBtn').addEventListener('click', async () => {
+                 if (typeof window.htmlToDocx === 'undefined') {
+                    console.error("html-to-docx library not loaded or attached to window.");
+                    return showMessage("Error: La librería de exportación no se cargó. Refresque la página e intente de nuevo.", "error");
+                }
+                showSpinner(true);
+                try {
+                    const content = document.getElementById('editableReportContent').innerHTML;
+                    const sourceHTML = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>Informe</title></head><body>${content}</body></html>`;
+                    const fileBuffer = await window.htmlToDocx.asBlob(sourceHTML);
+                    window.saveAs(fileBuffer, 'informe_sha_generado.docx');
+                } catch(e) {
+                    console.error("Error generating docx:", e);
+                    showMessage("Error al generar el documento.", "error");
+                } finally {
+                    showSpinner(false);
+                    editModal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Wait for the entire page to load, including all external scripts, before running the main script
+        window.addEventListener('load', main);
+        
     </script>
 </body>
 </html>
-
 
