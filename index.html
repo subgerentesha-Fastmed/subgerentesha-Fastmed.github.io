@@ -177,7 +177,7 @@
                         <!-- Botones de Acción -->
                         <div class="md:col-span-2 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-6">
                             <button type="button" id="saveReportBtn" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">Guardar Reporte</button>
-                            <button type="button" id="generateWhatsAppBtn" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none">Enviar por WhatsApp</button>
+                            <button type="button" id="generateWhatsAppBtn" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none">Guardar y Enviar a WhatsApp</button>
                             <button type="button" id="addToCalendarBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 transform hover:scale-105">
                                 <span class="text-xl">🗓️</span>
                                 Agendar
@@ -300,17 +300,17 @@
         </div>
     </div>
 
-    <!-- Modal de Confirmación de Eliminación -->
-    <div id="confirmDeleteModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-[70] p-4">
+    <!-- Modal de Confirmación -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-[70] p-4">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-sm">
             <div class="p-6 text-center">
-                <svg class="mx-auto mb-4 text-red-500 w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <h3 class="mb-5 text-lg font-normal text-gray-700">¿Estás seguro de que quieres eliminar este elemento?</h3>
-                <p id="itemToDeleteName" class="mb-5 text-sm font-bold text-gray-900"></p>
-                <button id="confirmDeleteBtn" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                <svg id="confirmModalIcon" class="mx-auto mb-4 w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <h3 id="confirmModalTitle" class="mb-5 text-lg font-normal text-gray-700">¿Estás seguro?</h3>
+                <p id="confirmModalText" class="mb-5 text-sm font-bold text-gray-900"></p>
+                <button id="confirmModalBtn" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
                     Sí, estoy seguro
                 </button>
-                <button id="cancelDeleteBtn" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+                <button id="cancelModalBtn" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
                     No, cancelar
                 </button>
             </div>
@@ -408,7 +408,7 @@
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
-                    await seedInitialData(); // Carga los datos iniciales si es necesario
+                    await seedInitialData(); 
                     setupReportsListener();
                     setupListListener('clients', populateClientDropdowns);
                     setupListListener('coordinators', populateCoordinatorDropdowns);
@@ -450,17 +450,19 @@
             }
         }
 
-        async function saveReportToFirebase(reportData) {
-            if (!userId || !db) return showMessage('Error: No se puede conectar a la base de datos.', 'error');
+        async function saveData(reportData) {
+            if (!userId || !db) {
+                showMessage('Error: No se puede conectar a la base de datos.', 'error');
+                return false;
+            }
             showSpinner(true);
             try {
                 await addDoc(collection(db, "shaReports"), { ...reportData, timestamp: serverTimestamp(), userId });
-                showMessage('Reporte guardado exitosamente.', 'success');
-                document.getElementById('reportForm').reset();
-                setDefaults();
+                return true; 
             } catch (error) {
                 console.error("Error saving report:", error);
                 showMessage('Error al guardar el reporte.', 'error');
+                return false; 
             } finally {
                 showSpinner(false);
             }
@@ -487,15 +489,20 @@
                 
                 if (listName === 'clients') {
                     allClientsList = items;
-                    manageClientsBtn.disabled = false;
-                    manageClientsBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 } else if (listName === 'coordinators') {
                     allCoordinatorsList = items;
-                    manageCoordinatorsBtn.disabled = false;
-                    manageCoordinatorsBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
                 
                 populateFunction(items);
+
+                if (allClientsList.length > 0) {
+                    manageClientsBtn.disabled = false;
+                    manageClientsBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                if (allCoordinatorsList.length > 0) {
+                    manageCoordinatorsBtn.disabled = false;
+                    manageCoordinatorsBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
             }, (error) => console.error(`Error listening to ${listName}:`, error));
         }
 
@@ -743,20 +750,42 @@
                 document.getElementById('elapsedTimeDisplay').textContent = `Tiempo Transcurrido: ${calculateElapsedTime(start, end)}`;
             });
 
-            document.getElementById('saveReportBtn').addEventListener('click', () => {
+            document.getElementById('saveReportBtn').addEventListener('click', async () => {
                 const data = getFormData();
-                if (data) saveReportToFirebase(data);
+                if (data) {
+                    const success = await saveData(data);
+                    if (success) {
+                        showMessage('Reporte guardado exitosamente.', 'success');
+                    }
+                }
             });
             
-            document.getElementById('generateWhatsAppBtn').addEventListener('click', () => {
+            document.getElementById('generateWhatsAppBtn').addEventListener('click', async () => {
                 const data = getFormData();
                 if (!data) return;
-                const text = `*REPORTE JORNADA SHA* ✅\n🗓️ *FECHA:* ${data.reportDate}\n...`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+
+                const success = await saveData(data);
+
+                if (success) {
+                    showMessage('Reporte guardado. Ahora generando enlace de WhatsApp...', 'info');
+                    const text = `*REPORTE JORNADA SHA* ✅\n🗓️ *FECHA:* ${data.reportDate}\n⏰ *HORARIO:* ${data.startTime} - ${data.endTime}\n⏳ *TIEMPO:* ${data.elapsedTime}\n🧑‍💼 *RESPONSABLE:* ${data.coordinator}\n📍 *CLIENTE:* ${data.location}\n---\n*ACTIVIDADES:* 📋\n${data.activities}\n---\n*OBSERVACIONES:* 👁️\n${data.observations || 'Sin observaciones.'}`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                } else {
+                    showMessage('No se pudo guardar el reporte. Intente de nuevo.', 'error');
+                }
             });
 
-            document.getElementById('addToCalendarBtn')?.addEventListener('click', function() { /* ... */ });
-            document.getElementById('clearFormBtn').addEventListener('click', () => { if (confirm('¿Limpiar?')) { form.reset(); setDefaults(); } });
+            document.getElementById('addToCalendarBtn')?.addEventListener('click', function() {
+                const reportData = getFormData();
+                if (!reportData) return;
+                const startDate = new Date(`${reportData.reportDate}T${reportData.startTime}`);
+                const endDate = new Date(`${reportData.reportDate}T${reportData.endTime}`);
+                if (isNaN(startDate) || isNaN(endDate)) return showMessage('Fecha u hora inválida.', 'error');
+                const title = `Jornada SHA: ${reportData.location} - ${reportData.coordinator}`;
+                const details = `*ACTIVIDADES REALIZADAS:*\n${reportData.activities}\n\n*OBSERVACIONES:*\n${reportData.observations}`;
+                const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatGoogleCalendarDate(startDate)}/${formatGoogleCalendarDate(endDate)}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(reportData.location)}`;
+                window.open(calendarUrl, '_blank');
+            });
             
             document.querySelectorAll('.activity-btn').forEach(button => {
                 button.addEventListener('click', () => {
@@ -772,6 +801,36 @@
                     const newText = button.textContent.trim();
                     textarea.value = textarea.value.trim() === '' ? newText : `${textarea.value.trim()}\n${newText}`;
                 });
+            });
+            
+            const clearFormBtn = document.getElementById('clearFormBtn');
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmModalBtn = document.getElementById('confirmModalBtn');
+            const cancelModalBtn = document.getElementById('cancelModalBtn');
+            const confirmModalTitle = document.getElementById('confirmModalTitle');
+            const confirmModalText = document.getElementById('confirmModalText');
+            const confirmModalIcon = document.getElementById('confirmModalIcon');
+
+            clearFormBtn.addEventListener('click', () => {
+                confirmModalTitle.textContent = '¿Estás seguro de que quieres limpiar el formulario?';
+                confirmModalText.textContent = 'Se borrará toda la información no guardada.';
+                confirmModalIcon.classList.remove('text-red-500');
+                confirmModalIcon.classList.add('text-yellow-500');
+                confirmModalBtn.classList.remove('bg-red-600', 'hover:bg-red-800');
+                confirmModalBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                confirmModalBtn.textContent = 'Sí, limpiar';
+                confirmModal.classList.remove('hidden');
+
+                confirmModalBtn.onclick = () => {
+                    form.reset();
+                    setDefaults();
+                    showMessage('Formulario limpiado.', 'info');
+                    confirmModal.classList.add('hidden');
+                };
+            });
+            
+            cancelModalBtn.addEventListener('click', () => {
+                confirmModal.classList.add('hidden');
             });
 
             // Supervisor Login
@@ -834,22 +893,22 @@
                 newItemInput.value = '';
             });
 
-            // Delete confirmation logic
-            const confirmDeleteModal = document.getElementById('confirmDeleteModal');
-            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            const itemToDeleteName = document.getElementById('itemToDeleteName');
-
             listContainer.addEventListener('click', (e) => {
                 const deleteButton = e.target.closest('.delete-item-btn');
                 if (deleteButton) {
                     const itemId = deleteButton.dataset.id;
                     const itemName = deleteButton.dataset.name;
                     
-                    itemToDeleteName.textContent = `"${itemName}"`;
-                    confirmDeleteModal.classList.remove('hidden');
+                    confirmModalTitle.textContent = '¿Estás seguro de que quieres eliminar este elemento?';
+                    confirmModalText.textContent = `"${itemName}"`;
+                    confirmModalIcon.classList.remove('text-yellow-500');
+                    confirmModalIcon.classList.add('text-red-500');
+                    confirmModalBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    confirmModalBtn.classList.add('bg-red-600', 'hover:bg-red-800');
+                    confirmModalBtn.textContent = 'Sí, estoy seguro';
+                    confirmModal.classList.remove('hidden');
 
-                    confirmDeleteBtn.onclick = async () => {
+                    confirmModalBtn.onclick = async () => {
                         showSpinner(true);
                         try {
                             await deleteDoc(doc(db, currentList, itemId));
@@ -859,16 +918,10 @@
                             showMessage('No se pudo eliminar el elemento.', 'error');
                         } finally {
                             showSpinner(false);
-                            confirmDeleteModal.classList.add('hidden');
-                            confirmDeleteBtn.onclick = null;
+                            confirmModal.classList.add('hidden');
                         }
                     };
                 }
-            });
-
-            cancelDeleteBtn.addEventListener('click', () => {
-                confirmDeleteModal.classList.add('hidden');
-                confirmDeleteBtn.onclick = null;
             });
 
             document.getElementById('closeManagementModalBtn').addEventListener('click', () => managementModal.classList.add('hidden'));
@@ -908,4 +961,3 @@
     </script>
 </body>
 </html>
-
