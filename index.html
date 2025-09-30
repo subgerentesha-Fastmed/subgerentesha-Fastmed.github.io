@@ -160,10 +160,10 @@
                         <div class="md:col-span-2">
                             <label for="activities" class="block text-gray-700 text-sm font-semibold mb-2">Actividades Realizadas:</label>
                              <div id="activityButtons" class="flex flex-wrap gap-2 mb-2">
-                                 <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Inspección de campo</button>
-                                 <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Reunión de seguridad</button>
-                                 <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Capacitación de personal</button>
-                             </div>
+                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Inspección de campo</button>
+                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Reunión de seguridad</button>
+                                <button type="button" class="activity-btn bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-sky-200 transition">Capacitación de personal</button>
+                            </div>
                             <textarea id="activities" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Describe las actividades realizadas..."></textarea>
                         </div>
                         <div class="md:col-span-2">
@@ -200,14 +200,14 @@
                     <section class="p-4 bg-indigo-50 rounded-lg shadow-md border border-indigo-200">
                         <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-indigo-400 pb-2">Análisis y Filtros</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                              <div>
-                                  <label for="filterStartDate" class="block text-sm font-semibold">Fecha Inicio:</label>
-                                  <input type="date" id="filterStartDate" class="w-full p-2 border rounded-lg bg-white mt-1">
-                              </div>
-                              <div>
-                                  <label for="filterEndDate" class="block text-sm font-semibold">Fecha Fin:</label>
-                                  <input type="date" id="filterEndDate" class="w-full p-2 border rounded-lg bg-white mt-1">
-                              </div>
+                             <div>
+                                <label for="filterStartDate" class="block text-sm font-semibold">Fecha Inicio:</label>
+                                <input type="date" id="filterStartDate" class="w-full p-2 border rounded-lg bg-white mt-1">
+                            </div>
+                             <div>
+                                <label for="filterEndDate" class="block text-sm font-semibold">Fecha Fin:</label>
+                                <input type="date" id="filterEndDate" class="w-full p-2 border rounded-lg bg-white mt-1">
+                            </div>
                             <div>
                                 <label for="coordinatorFilter" class="block text-sm font-semibold">Filtrar por Responsable:</label>
                                 <select id="coordinatorFilter" class="w-full p-2 border rounded-lg bg-white mt-1"></select>
@@ -230,8 +230,8 @@
                              <h2 class="text-xl font-semibold text-gray-800 mb-4">Acceso a Administración</h2>
                              <p class="text-gray-600 mb-4">Ingrese la clave de supervisor para gestionar clientes y responsables.</p>
                              <div class="flex justify-center items-center gap-2">
-                                 <input type="password" id="admin-key" class="w-full max-w-xs p-2 border rounded-md" placeholder="Clave de acceso">
-                                 <button id="admin-login-button" class="px-6 py-2 bg-red-600 text-white font-bold rounded-full">Desbloquear</button>
+                                <input type="password" id="admin-key" class="w-full max-w-xs p-2 border rounded-md" placeholder="Clave de acceso">
+                                <button id="admin-login-button" class="px-6 py-2 bg-red-600 text-white font-bold rounded-full">Desbloquear</button>
                              </div>
                         </div>
                         <div id="admin-controls" class="hidden text-center">
@@ -421,44 +421,28 @@
         }
         
         async function seedInitialData() {
-            // Fix for duplicated/outdated clients. This runs once per browser.
-            if (!localStorage.getItem('clientListFixed_2024_09_30')) {
-                console.log("Running one-time client list fix...");
-                showSpinner(true);
-                try {
-                    const clientsRef = collection(db, 'clients');
-                    
-                    // 1. Delete all existing clients
-                    const oldClientsSnapshot = await getDocs(clientsRef);
-                    const deleteBatch = writeBatch(db);
-                    oldClientsSnapshot.forEach(doc => {
-                        deleteBatch.delete(doc.ref);
-                    });
-                    await deleteBatch.commit();
-                    console.log("Old clients deleted.");
-
-                    // 2. Add the new, correct list of clients
-                    const clientNames = ["BAYER SA", "CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)", "CAF", "CHOCOBRU INTCHOCOLATE IMP REG CAP CA", "CONSORCIO DE VALORES E INVERSIONES COVAIN CA", "DESARROLLOS HOTELEROS LA CASTELLANA SCS", "EAGLEBURGMANN VENEZUELA CA", "GRUPO INFOGUIANET CA", "INTEXUS", "LABORATORIOS BROLAB CA", "OTRO", "OTAOLA INGENIERIA CA", "DICAM SISTEMAS INTELIGENTES CA", "BANCO ACTIVO", "SNACKS VALENCIA", "SNACKS PTO ORDAZ", "CONDOMINIO CENTRO COMERCIAL CITY MARKET", "PROMOTORA 204 CA", "PROSALMED CA", "ADMINISTRADORA 302 CA", "BANCO DIGITAL BANCO MICROFINANCIERO SA", "MASTERCARD VENEZUELA INC", "CARACAS SOUL CA", "ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ÚLTIMOS DÍAS", "SOCIEDAD DE AUTORES Y COMPOSITORES DE VENEZUELA (SACVEN)", "SNACKS MARACAY", "DIGITEL MARACAY", "SNACKS MARACAIBO", "A&S CONSULTORES C.A", "DISTRIBUIDORA DE ALIMENTOS LOS SOTO 48 C.A", "H2 FOOD SERVICE C.A", "HIIT HOUSE C.A", "INVERSIONES QUIMIVECO 3 C.A", "OXICORP C.A", "VAN DER IMPORT C.A", "INDUSTRIAS RIO COVO C.A", "MERCANTIL GUARENAS", "TELEFONICA VENEZOLANA C.A", "TELEFONICA", "BANCARIBE", "PROSALMED CSI El Rosal", "PROSALMED CSI Sabana Grande"];
-                    const addBatch = writeBatch(db);
-                    clientNames.forEach(name => {
-                        const docRef = doc(clientsRef);
-                        addBatch.set(docRef, { name });
-                    });
-                    await addBatch.commit();
-                    console.log("New clients seeded.");
-
-                    // 3. Set flag to prevent this from running again
-                    localStorage.setItem('clientListFixed_2024_09_30', 'true');
-                    showMessage('La lista de clientes ha sido corregida.', 'success');
-                } catch (error) {
-                    console.error("Error fixing client list:", error);
-                    showMessage('Error al corregir la lista de clientes.', 'error');
-                } finally {
-                    showSpinner(false);
-                }
+            if (localStorage.getItem('isSeeded_v4') === 'true') {
+                return;
             }
 
-            // Seed Coordinators (original logic)
+            console.log("Running one-time data seed...");
+
+            // Clear and Seed Clients
+            const clientsRef = collection(db, 'clients');
+            const oldClientsSnapshot = await getDocs(clientsRef);
+            const deleteBatch = writeBatch(db);
+            oldClientsSnapshot.forEach(doc => deleteBatch.delete(doc.ref));
+            await deleteBatch.commit();
+            
+            const clientNames = ["BAYER SA", "CAMARA VENEZOLANO AMERICANA DE COMERCIO E INDUSTRIA (VENAMCHAM)", "CHOCOBRU INTCHOCOLATE IMP REG CAP CA", "CONSORCIO DE VALORES E INVERSIONES COVAIN CA", "DESARROLLOS HOTELEROS LA CASTELLANA SCS", "EAGLEBURGMANN VENEZUELA CA", "GRUPO INFOGUIANET CA", "INTEXUS", "LABORATORIOS BROLAB CA", "OTAOLA INGENIERIA CA", "DICAM SISTEMAS INTELIGENTES CA", "BANCO ACTIVO", "SNACKS VALENCIA", "SNACKS PTO ORDAZ", "CONDOMINIO CENTRO COMERCIAL CITY MARKET", "PROMOTORA 204 CA", "PROSALMED CA", "ADMINISTRADORA 302 CA", "BANCO DIGITAL BANCO MICROFINANCIERO SA", "MASTERCARD VENEZUELA INC", "CARACAS SOUL CA", "ASOCIACION VENEZOLANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ÚLTIMOS DÍAS", "SOCIEDAD DE AUTORES Y COMPOSITORES DE VENEZUELA (SACVEN)", "SNACKS MARACAY", "DIGITEL MARACAY", "SNACKS MARACAIBO", "A&S CONSULTORES C.A", "DISTRIBUIDORA DE ALIMENTOS LOS SOTO 48 C.A", "H2 FOOD SERVICE C.A", "HIIT HOUSE C.A", "INVERSIONES QUIMIVECO 3 C.A", "OXICORP C.A", "VAN DER IMPORT C.A", "INDUSTRIAS RIO COVO C.A", "MERCANTIL GUARENAS", "TELEFONICA VENEZOLANA C.A", "TELEFONICA", "BANCARIBE", "PROSALMED CSI El Rosal", "PROSALMED CSI sabana grande", "CAF", "OTRO"];
+            const addClientsBatch = writeBatch(db);
+            clientNames.forEach(name => {
+                const docRef = doc(clientsRef);
+                addClientsBatch.set(docRef, { name });
+            });
+            await addClientsBatch.commit();
+
+            // Seed Coordinators if empty
             const coordinatorsRef = collection(db, 'coordinators');
             const coordinatorsSnapshot = await getDocs(coordinatorsRef);
             if (coordinatorsSnapshot.empty) {
@@ -471,6 +455,7 @@
                 });
                 await batch.commit();
             }
+            localStorage.setItem('isSeeded_v4', 'true');
         }
 
         async function saveData(reportData) {
@@ -579,13 +564,13 @@
         function populateCoordinatorDropdowns(coordinators) {
              const select = document.getElementById('coordinator');
              select.innerHTML = '<option value="" disabled selected>Selecciona un responsable</option>' + 
-                                 coordinators.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                                coordinators.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
         }
         
         function populateClientDropdowns(clients) {
             const select = document.getElementById('location');
             select.innerHTML = '<option value="" disabled selected>Selecciona un cliente</option>' + 
-                                  clients.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                               clients.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
         }
 
 
@@ -984,5 +969,4 @@
     </script>
 </body>
 </html>
-
 
